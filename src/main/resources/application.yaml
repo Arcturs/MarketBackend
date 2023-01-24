@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5435}/${DATABASE_NAME:marketdb}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:dumbpassword}
+  liquibase:
+    change-log: classpath:db/changelog/changelog-master.xml
