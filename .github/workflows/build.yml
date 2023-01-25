@@ -21,3 +21,10 @@ jobs:
 
       - name: Maven package
         run: mvn clean package -B -DskipTests
+
+  test:
+    needs: build
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Test
+        run: mvn clean verify
