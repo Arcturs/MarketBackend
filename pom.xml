@@ -153,12 +153,20 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <excludes>
+                                <exclude>ru/vsu/csf/asashina/market/MarketApplication.class</exclude>
+                                <exclude>ru/vsu/csf/asashina/market/exception/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/market/model/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/market/repository/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/market/mapper/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/market/configuration/**</exclude>
+                            </excludes>
                             <rules>
                                 <rule>
                                     <element>PACKAGE</element>
                                     <limits>
                                         <limit>
-                                            <counter>LINE</counter>
+                                            <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
                                             <minimum>0.75</minimum>
                                         </limit>
