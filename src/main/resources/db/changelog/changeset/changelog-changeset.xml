@@ -9,4 +9,9 @@
         <sqlFile path="changeset/create/create-product-table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="2-Create-category-table" author="Anastasiya Sashina">
+        <sqlFile path="changeset/create/create-category-table.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="changeset/create/create-product_category-table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>
