@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
@@ -337,5 +334,81 @@ class ProductControllerITest {
 
         assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM product WHERE product_id = 4)",
                 Boolean.class), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void updateProductByIdSuccess() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+                "amount", "12",
+                "description", "Cool"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/1", HttpMethod.PUT, request,
+                String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "productId": 1,
+                    "name": "Name 1",
+                    "description": "Cool",
+                    "price": 100.00,
+                    "amount": 12
+                }
+                """, response.getBody(), false);
+
+        assertEquals(jdbcTemplate.queryForMap("SELECT description, amount FROM product WHERE product_id = 1"),
+                Map.of(
+                        "description", "Cool",
+                        "amount", 12
+                ));
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void updateProductByIdThrowsExceptionForInvalidId() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+                "amount", "12",
+                "description", "Cool"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/ab", HttpMethod.PUT, request,
+                String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void updateProductByIdThrowsExceptionForNotExistingObject() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+                "amount", "12",
+                "description", "Cool"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/4", HttpMethod.PUT, request,
+                String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Product with following id does not exist"
+                }
+                """, response.getBody(), false);
     }
 }

@@ -144,6 +144,7 @@
                                 <exclude>ru/vsu/csf/asashina/market/repository/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/market/mapper/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/market/configuration/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/market/serializer/**</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -160,6 +161,7 @@
                                 <exclude>ru/vsu/csf/asashina/market/repository/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/market/mapper/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/market/configuration/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/market/serializer/**</exclude>
                             </excludes>
                             <rules>
                                 <rule>

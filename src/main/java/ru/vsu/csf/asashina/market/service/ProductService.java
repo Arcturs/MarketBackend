@@ -12,6 +12,7 @@ import ru.vsu.csf.asashina.market.mapper.ProductMapper;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.market.model.entity.Product;
 import ru.vsu.csf.asashina.market.model.request.ProductCreateRequest;
+import ru.vsu.csf.asashina.market.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 import ru.vsu.csf.asashina.market.validator.PageValidator;
 
@@ -60,5 +61,13 @@ public class ProductService {
         if (productRepository.existsProductByNameIgnoreCase(name)) {
             throw new ObjectAlreadyExistsException("Product with following name already exists");
         }
+    }
+
+    @Transactional
+    public ProductDTO updateProductFromUpdateRequest(Long id, ProductUpdateRequest request) {
+        Product beforeUpdateEntity = findProductById(id);
+        productMapper.updateEntityFromUpdateRequest(request, beforeUpdateEntity);
+        Product afterUpdateEntity = productRepository.save(beforeUpdateEntity);
+        return productMapper.toDTOFromEntity(afterUpdateEntity);
     }
 }

@@ -17,6 +17,7 @@ import ru.vsu.csf.asashina.market.mapper.ProductMapper;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.market.model.entity.Product;
 import ru.vsu.csf.asashina.market.model.request.ProductCreateRequest;
+import ru.vsu.csf.asashina.market.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 import ru.vsu.csf.asashina.market.validator.PageValidator;
 
@@ -27,8 +28,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -114,6 +114,13 @@ class ProductServiceTest {
                 .name("Name 1")
                 .price(100.0F)
                 .amount(10)
+                .build();
+    }
+
+    private ProductUpdateRequest createValidProductUpdateRequest() {
+        return ProductUpdateRequest.builder()
+                .amount(12)
+                .description("Cool")
                 .build();
     }
 
@@ -222,5 +229,50 @@ class ProductServiceTest {
         //when, then
         assertThatThrownBy(() -> productService.createProductFromCreateRequest(request))
                 .isInstanceOf(ObjectAlreadyExistsException.class);
+    }
+
+    @Test
+    void updateProductFromUpdateRequestSuccess() {
+        //given
+        Long id = 1L;
+        ProductUpdateRequest request = createValidProductUpdateRequest();
+
+        Product beforeUpdateEntityFromRepository = createValidProduct();
+        Product afterUpdateEntity = Product.builder()
+                .productId(1L)
+                .name("Name 1")
+                .description("Cool")
+                .price(100.0F)
+                .amount(12)
+                .build();
+        ProductDTO expectedProduct = ProductDTO.builder()
+                .productId(1L)
+                .name("Name 1")
+                .description("Cool")
+                .price(100.0F)
+                .amount(12)
+                .build();
+
+        when(productRepository.findById(id)).thenReturn(Optional.of(beforeUpdateEntityFromRepository));
+        when(productRepository.save(afterUpdateEntity)).thenReturn(afterUpdateEntity);
+
+        //when
+        ProductDTO result = productService.updateProductFromUpdateRequest(id, request);
+
+        //then
+        assertEquals(expectedProduct, result);
+    }
+
+    @Test
+    void updateProductFromUpdateRequestThrowsExceptionForNotExistingProduct() {
+        //given
+        Long id = 2L;
+        ProductUpdateRequest request = createValidProductUpdateRequest();
+
+        when(productRepository.findById(id)).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> productService.updateProductFromUpdateRequest(id, request))
+                .isInstanceOf(ObjectNotExistException.class);
     }
 }

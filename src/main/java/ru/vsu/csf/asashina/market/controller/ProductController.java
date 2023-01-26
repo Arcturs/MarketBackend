@@ -3,12 +3,12 @@ package ru.vsu.csf.asashina.market.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.vsu.csf.asashina.market.model.ResponseBuilder;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.market.model.request.ProductCreateRequest;
+import ru.vsu.csf.asashina.market.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.market.service.ProductService;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -38,5 +38,11 @@ public class ProductController {
     @PostMapping("")
     public ResponseEntity<?> createProduct(@RequestBody @Valid ProductCreateRequest request) {
         return ResponseBuilder.build(CREATED, productService.createProductFromCreateRequest(request));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateProductById(@PathVariable("id") Long id,
+                                               @RequestBody @Valid ProductUpdateRequest request) {
+        return ResponseBuilder.build(OK, productService.updateProductFromUpdateRequest(id, request));
     }
 }
