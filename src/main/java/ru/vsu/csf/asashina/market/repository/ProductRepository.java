@@ -17,4 +17,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                     WHERE LOWER(name) LIKE CONCAT('%', LOWER(:name), '%')
                     """, nativeQuery = true)
     Page<Product> getProductInPagesAndSearchByName(@Param("name") String name, Pageable pageable);
+
+    boolean existsProductByNameIgnoreCase(String name);
 }

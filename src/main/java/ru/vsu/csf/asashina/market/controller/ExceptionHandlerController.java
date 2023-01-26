@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import ru.vsu.csf.asashina.market.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.exception.PageException;
 import ru.vsu.csf.asashina.market.model.ResponseBuilder;
@@ -48,5 +49,10 @@ public class ExceptionHandlerController {
     @ExceptionHandler({ObjectNotExistException.class})
     public ResponseEntity<?> notFoundExceptionHandler(Exception e) {
         return ResponseBuilder.build(NOT_FOUND, e);
+    }
+
+    @ExceptionHandler({ObjectAlreadyExistsException.class})
+    public ResponseEntity<?> conflictExceptionHandler(Exception e) {
+        return ResponseBuilder.build(CONFLICT, e);
     }
 }

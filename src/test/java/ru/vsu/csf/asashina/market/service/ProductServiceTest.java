@@ -10,11 +10,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import ru.vsu.csf.asashina.market.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.exception.PageException;
 import ru.vsu.csf.asashina.market.mapper.ProductMapper;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.market.model.entity.Product;
+import ru.vsu.csf.asashina.market.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 import ru.vsu.csf.asashina.market.validator.PageValidator;
 
@@ -107,6 +109,14 @@ class ProductServiceTest {
                 .build();
     }
 
+    private ProductCreateRequest createValidProductCreateRequest() {
+        return ProductCreateRequest.builder()
+                .name("Name 1")
+                .price(100.0F)
+                .amount(10)
+                .build();
+    }
+
     @Test
     void getAllProductsInPagesByNameSuccess() {
         //given
@@ -176,5 +186,41 @@ class ProductServiceTest {
         //when, then
         assertThatThrownBy(() -> productService.getProductById(id))
                 .isInstanceOf(ObjectNotExistException.class);
+    }
+
+    @Test
+    void createProductFromCreateRequestSuccess() {
+        //given
+        ProductCreateRequest request = createValidProductCreateRequest();
+
+        Product withoutIdProduct = Product.builder()
+                .productId(null)
+                .name("Name 1")
+                .price(100.0F)
+                .amount(10)
+                .build();
+        Product productFromRepository = createValidProduct();
+        ProductDTO expectedProduct = createValidProductDTO();
+
+        when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
+        when(productRepository.save(withoutIdProduct)).thenReturn(productFromRepository);
+
+        //when
+        ProductDTO result = productService.createProductFromCreateRequest(request);
+
+        //then
+        assertEquals(expectedProduct, result);
+    }
+
+    @Test
+    void createProductFromCreateRequestThrowsExceptionWhenProductWithNameAlreadyExists() {
+        //given
+        ProductCreateRequest request = createValidProductCreateRequest();
+
+        when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(true);
+
+        //when, then
+        assertThatThrownBy(() -> productService.createProductFromCreateRequest(request))
+                .isInstanceOf(ObjectAlreadyExistsException.class);
     }
 }

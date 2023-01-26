@@ -11,10 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.*;
@@ -40,6 +45,12 @@ class ProductControllerITest {
         jdbcTemplate.execute("ALTER TABLE product ALTER COLUMN product_id RESTART WITH 1");
     }
 
+    private HttpEntity<Map<String, Object>> createRequestWithRequestBody(Map<String, Object> requestBody) {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity<>(requestBody, headers);
+    }
+
     @Test
     @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesWithoutParams() throws JSONException {
@@ -60,21 +71,21 @@ class ProductControllerITest {
                                 "productId": 3,
                                 "name": "Name 3",
                                 "description": null,
-                                "price": 56.6,
+                                "price": 56.60,
                                 "amount": 3
                             },
                             {
                                 "productId": 1,
                                 "name": "Name 1",
                                 "description": null,
-                                "price": 100.0,
+                                "price": 100.00,
                                 "amount": 10
                             },
                             {
                                 "productId": 2,
                                 "name": "Name 2",
                                 "description": null,
-                                "price": 100.0,
+                                "price": 100.00,
                                 "amount": 12
                             }
                          ]
@@ -102,7 +113,7 @@ class ProductControllerITest {
                                 "productId": 2,
                                 "name": "Name 2",
                                 "description": null,
-                                "price": 100.0,
+                                "price": 100.00,
                                 "amount": 12
                             }
                          ]
@@ -130,21 +141,21 @@ class ProductControllerITest {
                                 "productId": 2,
                                 "name": "Name 2",
                                 "description": null,
-                                "price": 100.0,
+                                "price": 100.00,
                                 "amount": 12
                             },
                             {
                                 "productId": 1,
                                 "name": "Name 1",
                                 "description": null,
-                                "price": 100.0,
+                                "price": 100.00,
                                 "amount": 10
                             },
                             {
                                 "productId": 3,
                                 "name": "Name 3",
                                 "description": null,
-                                "price": 56.6,
+                                "price": 56.60,
                                 "amount": 3
                             }
                          ]
@@ -172,7 +183,7 @@ class ProductControllerITest {
                                 "productId": 1,
                                 "name": "Name 1",
                                 "description": null,
-                                "price": 100.0,
+                                "price": 100.00,
                                 "amount": 10
                             }
                          ]
@@ -229,7 +240,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getProductByIdSuccess() throws JSONException {
         //when
-        ResponseEntity<?> response = testRestTemplate.getForEntity("/products/1", String.class);
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/products/1", String.class);
 
         //then
         assertEquals(OK, response.getStatusCode());
@@ -238,17 +249,17 @@ class ProductControllerITest {
                     "productId": 1,
                     "name": "Name 1",
                     "description": null,
-                    "price": 100.0,
+                    "price": 100.00,
                     "amount": 10
                 }
-                """, (String) response.getBody(), false);
+                """,  response.getBody(), false);
     }
 
     @Test
     @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //when
-        ResponseEntity<?> response = testRestTemplate.getForEntity("/products/ab", String.class);
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/products/ab", String.class);
 
         //then
         assertEquals(BAD_REQUEST, response.getStatusCode());
@@ -256,14 +267,14 @@ class ProductControllerITest {
                 {
                     "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \\"ab\\""
                 }
-                """, (String) response.getBody(), false);
+                """,  response.getBody(), false);
     }
 
     @Test
     @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getProductByIdThrowsExceptionForNonExistingProduct() throws JSONException {
         //when
-        ResponseEntity<?> response = testRestTemplate.getForEntity("/products/100", String.class);
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/products/100", String.class);
 
         //then
         assertEquals(NOT_FOUND, response.getStatusCode());
@@ -271,6 +282,60 @@ class ProductControllerITest {
                 {
                     "message": "Product with following id does not exist"
                 }
-                """, (String) response.getBody(), false);
+                """,  response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void createProductSuccess() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+                "name", "Name 4",
+                "price", "67.67",
+                "amount", "4"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/products", request, String.class);
+
+        //then
+        assertEquals(CREATED, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "productId": 4,
+                    "name": "Name 4",
+                    "description": null,
+                    "price": 67.67,
+                    "amount": 4
+                }
+                """,  response.getBody(), false);
+
+        assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM product WHERE product_id = 4)",
+                Boolean.class), true);
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void createProductThrowsExceptionWhenObjectWithRequestedNameAlreadyExists() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+                "name", "Name 1",
+                "price", "67.67",
+                "amount", "4"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/products", request, String.class);
+
+        //then
+        assertEquals(CONFLICT, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Product with following name already exists"
+                }
+                """,  response.getBody(), false);
+
+        assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM product WHERE product_id = 4)",
+                Boolean.class), false);
     }
 }
