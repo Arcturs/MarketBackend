@@ -14,8 +14,10 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
+import ru.vsu.csf.asashina.market.repository.CategoryRepository;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,10 +38,16 @@ class ProductControllerITest {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     @AfterEach
     void tearDown() {
         productRepository.deleteAll();
         jdbcTemplate.execute("ALTER TABLE product ALTER COLUMN product_id RESTART WITH 1");
+
+        categoryRepository.deleteAll();
+        jdbcTemplate.execute("ALTER TABLE category ALTER COLUMN category_id RESTART WITH 1");
     }
 
     private HttpEntity<Map<String, Object>> createRequestWithRequestBody(Map<String, Object> requestBody) {
@@ -55,7 +63,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesWithoutParams() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products", String.class);
@@ -75,14 +83,30 @@ class ProductControllerITest {
                                 "name": "Name 3",
                                 "description": null,
                                 "price": 56.60,
-                                "amount": 3
+                                "amount": 3,
+                                "categories": [
+                                    {
+                                        "categoryId": 1,
+                                        "name": "N"
+                                    }
+                                ]
                             },
                             {
                                 "productId": 1,
                                 "name": "Name 1",
                                 "description": null,
                                 "price": 100.00,
-                                "amount": 10
+                                "amount": 10,
+                                "categories": [
+                                    {
+                                        "categoryId": 1,
+                                        "name": "N"
+                                    },
+                                    {
+                                        "categoryId": 2,
+                                        "name": "V"
+                                    }
+                                ]
                             },
                             {
                                 "productId": 2,
@@ -97,7 +121,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesWithPageAndSizeParams() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?pageNumber=2&size=2", String.class);
@@ -125,7 +149,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesWithAscEqualsFalse() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?isAsc=", String.class);
@@ -152,14 +176,30 @@ class ProductControllerITest {
                                 "name": "Name 1",
                                 "description": null,
                                 "price": 100.00,
-                                "amount": 10
+                                "amount": 10,
+                                "categories": [
+                                    {
+                                        "categoryId": 1,
+                                        "name": "N"
+                                    },
+                                    {
+                                        "categoryId": 2,
+                                        "name": "V"
+                                    }
+                                ]
                             },
                             {
                                 "productId": 3,
                                 "name": "Name 3",
                                 "description": null,
                                 "price": 56.60,
-                                "amount": 3
+                                "amount": 3,
+                                "categories": [
+                                    {
+                                        "categoryId": 1,
+                                        "name": "N"
+                                    }
+                                ]
                             }
                          ]
                      }
@@ -167,7 +207,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesWithNameParam() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?name=1", String.class);
@@ -187,7 +227,17 @@ class ProductControllerITest {
                                 "name": "Name 1",
                                 "description": null,
                                 "price": 100.00,
-                                "amount": 10
+                                "amount": 10,
+                                "categories": [
+                                    {
+                                        "categoryId": 1,
+                                        "name": "N"
+                                    },
+                                    {
+                                        "categoryId": 2,
+                                        "name": "V"
+                                    }
+                                ]
                             }
                          ]
                      }
@@ -195,7 +245,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesThrowsExceptionForInvalidPageNumber() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?pageNumber=ab", String.class);
@@ -210,7 +260,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesThrowsExceptionForInvalidSize() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?size=ab", String.class);
@@ -225,7 +275,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesThrowsExceptionWhenPageOutOfRange() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?pageNumber=2&size=3", String.class);
@@ -240,7 +290,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getProductByIdSuccess() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products/1", String.class);
@@ -253,13 +303,23 @@ class ProductControllerITest {
                     "name": "Name 1",
                     "description": null,
                     "price": 100.00,
-                    "amount": 10
+                    "amount": 10,
+                    "categories": [
+                        {
+                            "categoryId": 1,
+                            "name": "N"
+                        },
+                        {
+                            "categoryId": 2,
+                            "name": "V"
+                        }
+                    ]
                 }
                 """,  response.getBody(), false);
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products/ab", String.class);
@@ -274,7 +334,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getProductByIdThrowsExceptionForNonExistingProduct() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products/100", String.class);
@@ -289,7 +349,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductSuccess() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -318,7 +378,45 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void createProductSuccessWithCategory() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+                "name", "Name 4",
+                "price", "67.67",
+                "amount", "4",
+                "categoriesId", List.of(2L)
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/products", request, String.class);
+
+        //then
+        assertEquals(CREATED, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "productId": 4,
+                    "name": "Name 4",
+                    "description": null,
+                    "price": 67.67,
+                    "amount": 4,
+                    "categories": [
+                        {
+                            "categoryId": 2,
+                            "name": "V"
+                        }
+                    ]
+                }
+                """,  response.getBody(), false);
+
+        assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM product WHERE product_id = 4)",
+                Boolean.class), true);
+        assertEquals(jdbcTemplate.queryForObject("SELECT category_id FROM product_category WHERE product_id = 4",
+                        Long.class), 2L);
+    }
+
+    @Test
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductThrowsExceptionWhenObjectWithRequestedNameAlreadyExists() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -343,7 +441,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdSuccess() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -363,7 +461,17 @@ class ProductControllerITest {
                     "name": "Name 1",
                     "description": "Cool",
                     "price": 100.00,
-                    "amount": 12
+                    "amount": 12,
+                    "categories": [
+                        {
+                            "categoryId": 1,
+                            "name": "N"
+                        },
+                        {
+                            "categoryId": 2,
+                            "name": "V"
+                        }
+                    ]
                 }
                 """, response.getBody(), false);
 
@@ -375,7 +483,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -397,7 +505,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForNotExistingObject() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -419,7 +527,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdSuccess() {
         //given
         HttpEntity<Map<String, Object>> request = createRequest();
@@ -436,7 +544,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequest();
@@ -455,7 +563,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForNotExistingId() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequest();

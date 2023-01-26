@@ -3,6 +3,8 @@ package ru.vsu.csf.asashina.market.model.request;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -23,4 +25,6 @@ public class ProductCreateRequest {
     @NotNull
     @Positive
     private Integer amount;
+
+    private List<Long> categoriesId;
 }

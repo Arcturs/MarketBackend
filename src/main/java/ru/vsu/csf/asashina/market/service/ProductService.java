@@ -10,11 +10,14 @@ import ru.vsu.csf.asashina.market.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.mapper.ProductMapper;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
+import ru.vsu.csf.asashina.market.model.entity.Category;
 import ru.vsu.csf.asashina.market.model.entity.Product;
 import ru.vsu.csf.asashina.market.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.market.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 import ru.vsu.csf.asashina.market.validator.PageValidator;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -27,6 +30,8 @@ public class ProductService {
     private final ProductMapper productMapper;
 
     private final PageValidator pageValidator;
+
+    private final CategoryService categoryService;
 
     public Page<ProductDTO> getAllProductsInPagesByName(Integer pageNumber, Integer size, String name, Boolean isAsc) {
         PageRequest pageRequest = PageRequest.of(pageNumber - 1, size,
@@ -52,7 +57,8 @@ public class ProductService {
     @Transactional
     public ProductDTO createProductFromCreateRequest(ProductCreateRequest request) {
         checkProductNameExistsByName(request.getName());
-        Product entityFromCreateRequest = productMapper.toEntityFromCreateRequest(request);
+        List<Category> categoriesFromRequest = categoryService.getCategoryListByIds(request.getCategoriesId());
+        Product entityFromCreateRequest = productMapper.toEntityFromCreateRequest(request, categoriesFromRequest);
         Product createdProductWithId = productRepository.save(entityFromCreateRequest);
         return productMapper.toDTOFromEntity(createdProductWithId);
     }

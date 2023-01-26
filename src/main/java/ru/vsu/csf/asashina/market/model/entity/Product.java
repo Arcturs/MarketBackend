@@ -3,6 +3,10 @@ package ru.vsu.csf.asashina.market.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 @Table(name = "product")
 @Entity
 @AllArgsConstructor
@@ -27,4 +31,10 @@ public class Product {
 
     @Column(nullable = false)
     private Integer amount;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "product_category",
+            joinColumns = {@JoinColumn(name = "product_id")},
+            inverseJoinColumns = {@JoinColumn(name = "category_id")})
+    private List<Category> categories;
 }

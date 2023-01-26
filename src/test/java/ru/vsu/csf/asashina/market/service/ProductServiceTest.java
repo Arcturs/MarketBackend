@@ -14,13 +14,16 @@ import ru.vsu.csf.asashina.market.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.exception.PageException;
 import ru.vsu.csf.asashina.market.mapper.ProductMapper;
+import ru.vsu.csf.asashina.market.model.dto.CategoryDTO;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
+import ru.vsu.csf.asashina.market.model.entity.Category;
 import ru.vsu.csf.asashina.market.model.entity.Product;
 import ru.vsu.csf.asashina.market.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.market.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 import ru.vsu.csf.asashina.market.validator.PageValidator;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +41,9 @@ class ProductServiceTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Mock
+    private CategoryService categoryService;
 
     @Spy
     private ProductMapper productMapper = Mappers.getMapper(ProductMapper.class);
@@ -124,6 +130,14 @@ class ProductServiceTest {
                 .build();
     }
 
+    private List<Category> createValidCategoryList() {
+        return List.of(new Category(1L, "Name 1"));
+    }
+
+    private List<CategoryDTO> createValidCategoryDTOList() {
+        return List.of(new CategoryDTO(1L, "Name 1"));
+    }
+
     @Test
     void getAllProductsInPagesByNameSuccess() {
         //given
@@ -154,7 +168,6 @@ class ProductServiceTest {
         boolean isAsc = false;
 
         Page<Product> pagesFromRepository = createValidPages();
-        Page<ProductDTO> expectedPages = createValidPagesDTO();
 
         when(productRepository.getProductInPagesAndSearchByName(eq(name), any(Pageable.class)))
                 .thenReturn(pagesFromRepository);
@@ -186,8 +199,6 @@ class ProductServiceTest {
         //given
         long id = 2L;
 
-        ProductDTO expectedProduct = createValidProductDTO();
-
         when(productRepository.findById(id)).thenReturn(Optional.empty());
 
         //when, then
@@ -210,6 +221,38 @@ class ProductServiceTest {
         ProductDTO expectedProduct = createValidProductDTO();
 
         when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
+        when(categoryService.getCategoryListByIds(null)).thenReturn(null);
+        when(productRepository.save(withoutIdProduct)).thenReturn(productFromRepository);
+
+        //when
+        ProductDTO result = productService.createProductFromCreateRequest(request);
+
+        //then
+        assertEquals(expectedProduct, result);
+    }
+
+    @Test
+    void createProductFromCreateRequestSuccessWithCategory() {
+        //given
+        ProductCreateRequest request = createValidProductCreateRequest();
+        request.setCategoriesId(List.of(1L));
+
+        List<Category> categoriesFromCategoryService = createValidCategoryList();
+        Product withoutIdProduct = Product.builder()
+                .productId(null)
+                .name("Name 1")
+                .price(100.0F)
+                .amount(10)
+                .categories(categoriesFromCategoryService)
+                .build();
+        Product productFromRepository = createValidProduct();
+        productFromRepository.setCategories(categoriesFromCategoryService);
+        ProductDTO expectedProduct = createValidProductDTO();
+        expectedProduct.setCategories(createValidCategoryDTOList());
+
+        when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
+        when(categoryService.getCategoryListByIds(request.getCategoriesId()))
+                .thenReturn(categoriesFromCategoryService);
         when(productRepository.save(withoutIdProduct)).thenReturn(productFromRepository);
 
         //when
