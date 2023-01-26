@@ -70,4 +70,10 @@ public class ProductService {
         Product afterUpdateEntity = productRepository.save(beforeUpdateEntity);
         return productMapper.toDTOFromEntity(afterUpdateEntity);
     }
+
+    @Transactional
+    public void deleteProductById(Long id) {
+        Product product = findProductById(id);
+        productRepository.delete(product);
+    }
 }

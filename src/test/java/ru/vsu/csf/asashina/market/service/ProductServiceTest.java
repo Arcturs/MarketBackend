@@ -275,4 +275,28 @@ class ProductServiceTest {
         assertThatThrownBy(() -> productService.updateProductFromUpdateRequest(id, request))
                 .isInstanceOf(ObjectNotExistException.class);
     }
+
+    @Test
+    void deleteProductByIdSuccess() {
+        //given
+        long id = 1L;
+
+        Product productFromRepository = createValidProduct();
+
+        when(productRepository.findById(id)).thenReturn(Optional.of(productFromRepository));
+
+        //when, then
+        assertDoesNotThrow(() -> productService.deleteProductById(id));
+    }
+
+    @Test
+    void deleteProductByIdThrowsExceptionForNotExistingProduct() {
+        //given
+        long id = 2L;
+
+        when(productRepository.findById(id)).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> productService.deleteProductById(id)).isInstanceOf(ObjectNotExistException.class);
+    }
 }

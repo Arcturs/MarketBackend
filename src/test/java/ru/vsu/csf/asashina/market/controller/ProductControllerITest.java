@@ -48,6 +48,12 @@ class ProductControllerITest {
         return new HttpEntity<>(requestBody, headers);
     }
 
+    private HttpEntity<Map<String, Object>> createRequest() {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity<>(headers);
+    }
+
     @Test
     @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesWithoutParams() throws JSONException {
@@ -401,6 +407,61 @@ class ProductControllerITest {
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/4", HttpMethod.PUT, request,
+                String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Product with following id does not exist"
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void deleteProductByIdSuccess() {
+        //given
+        HttpEntity<Map<String, Object>> request = createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/1", HttpMethod.DELETE, request,
+                String.class);
+
+        //then
+        assertEquals(NO_CONTENT, response.getStatusCode());
+
+        assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM product WHERE product_id = 1)",
+                Boolean.class), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void deleteProductByIdThrowsExceptionForInvalidId() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/ab", HttpMethod.DELETE, request,
+                String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void deleteProductByIdThrowsExceptionForNotExistingId() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/100", HttpMethod.DELETE, request,
                 String.class);
 
         //then
