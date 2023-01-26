@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.mapper.ProductMapper;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.market.model.entity.Product;
@@ -31,5 +32,16 @@ public class ProductService {
         pageValidator.checkPageOutOfRange(pages, pageNumber);
 
         return pages.map(productMapper::toDTOFromEntity);
+    }
+
+    public ProductDTO getProductById(Long id) {
+        Product product = findProductById(id);
+        return productMapper.toDTOFromEntity(product);
+    }
+
+    private Product findProductById(Long id) {
+        return productRepository.findById(id).orElseThrow(
+                () -> new ObjectNotExistException("Product with following id does not exist")
+        );
     }
 }

@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.exception.PageException;
 import ru.vsu.csf.asashina.market.mapper.ProductMapper;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
@@ -18,6 +19,7 @@ import ru.vsu.csf.asashina.market.repository.ProductRepository;
 import ru.vsu.csf.asashina.market.validator.PageValidator;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,46 +42,6 @@ class ProductServiceTest {
 
     @Spy
     private PageValidator pageValidator;
-
-    @Test
-    void getAllProductsInPagesByNameSuccess() {
-        //given
-        int pageNumber = 1;
-        int size = 2;
-        String name = "";
-        boolean isAsc = true;
-
-        Page<Product> pagesFromRepository = createValidPages();
-        Page<ProductDTO> expectedPages = createValidPagesDTO();
-
-        when(productRepository.getProductInPagesAndSearchByName(eq(name), any(Pageable.class)))
-                .thenReturn(pagesFromRepository);
-
-        //when
-        Page<ProductDTO> result = productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc);
-
-        //then
-        assertEquals(expectedPages, result);
-    }
-
-    @Test
-    void getAllProductsInPagesByNameThrowsExceptionForPageOutOfRange() {
-        //given
-        int pageNumber = 5;
-        int size = 2;
-        String name = "";
-        boolean isAsc = false;
-
-        Page<Product> pagesFromRepository = createValidPages();
-        Page<ProductDTO> expectedPages = createValidPagesDTO();
-
-        when(productRepository.getProductInPagesAndSearchByName(eq(name), any(Pageable.class)))
-                .thenReturn(pagesFromRepository);
-
-        //when
-        assertThatThrownBy(() -> productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc))
-                .isInstanceOf(PageException.class);
-    }
 
     private Page<Product> createValidPages() {
         return new PageImpl<>(List.of(
@@ -125,5 +87,94 @@ class ProductServiceTest {
                         .amount(10)
                         .build()
         ));
+    }
+
+    private Product createValidProduct() {
+        return Product.builder()
+                .productId(1L)
+                .name("Name 1")
+                .price(100.0F)
+                .amount(10)
+                .build();
+    }
+
+    private ProductDTO createValidProductDTO() {
+        return ProductDTO.builder()
+                .productId(1L)
+                .name("Name 1")
+                .price(100.0F)
+                .amount(10)
+                .build();
+    }
+
+    @Test
+    void getAllProductsInPagesByNameSuccess() {
+        //given
+        int pageNumber = 1;
+        int size = 2;
+        String name = "";
+        boolean isAsc = true;
+
+        Page<Product> pagesFromRepository = createValidPages();
+        Page<ProductDTO> expectedPages = createValidPagesDTO();
+
+        when(productRepository.getProductInPagesAndSearchByName(eq(name), any(Pageable.class)))
+                .thenReturn(pagesFromRepository);
+
+        //when
+        Page<ProductDTO> result = productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc);
+
+        //then
+        assertEquals(expectedPages, result);
+    }
+
+    @Test
+    void getAllProductsInPagesByNameThrowsExceptionForPageOutOfRange() {
+        //given
+        int pageNumber = 5;
+        int size = 2;
+        String name = "";
+        boolean isAsc = false;
+
+        Page<Product> pagesFromRepository = createValidPages();
+        Page<ProductDTO> expectedPages = createValidPagesDTO();
+
+        when(productRepository.getProductInPagesAndSearchByName(eq(name), any(Pageable.class)))
+                .thenReturn(pagesFromRepository);
+
+        //when, then
+        assertThatThrownBy(() -> productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc))
+                .isInstanceOf(PageException.class);
+    }
+
+    @Test
+    void getProductByIdSuccess() {
+        //given
+        long id = 1L;
+
+        Product productFromRepository = createValidProduct();
+        ProductDTO expectedProduct = createValidProductDTO();
+
+        when(productRepository.findById(id)).thenReturn(Optional.of(productFromRepository));
+
+        //when
+        ProductDTO result = productService.getProductById(id);
+
+        //then
+        assertEquals(expectedProduct, result);
+    }
+
+    @Test
+    void getProductByIdThrowsExceptionForNonExistingProduct() {
+        //given
+        long id = 2L;
+
+        ProductDTO expectedProduct = createValidProductDTO();
+
+        when(productRepository.findById(id)).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> productService.getProductById(id))
+                .isInstanceOf(ObjectNotExistException.class);
     }
 }

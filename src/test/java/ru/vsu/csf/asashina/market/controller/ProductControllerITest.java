@@ -11,13 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpStatus.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +47,7 @@ class ProductControllerITest {
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products", String.class);
 
         //then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(OK, response.getStatusCode());
         JSONAssert.assertEquals("""
                      {
                          "paging": {
@@ -89,7 +89,7 @@ class ProductControllerITest {
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?pageNumber=2&size=2", String.class);
 
         //then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(OK, response.getStatusCode());
         JSONAssert.assertEquals("""
                      {
                          "paging": {
@@ -117,7 +117,7 @@ class ProductControllerITest {
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?isAsc=", String.class);
 
         //then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(OK, response.getStatusCode());
         JSONAssert.assertEquals("""
                      {
                          "paging": {
@@ -159,7 +159,7 @@ class ProductControllerITest {
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?name=1", String.class);
 
         //then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(OK, response.getStatusCode());
         JSONAssert.assertEquals("""
                      {
                          "paging": {
@@ -187,7 +187,7 @@ class ProductControllerITest {
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?pageNumber=ab", String.class);
 
         //then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(BAD_REQUEST, response.getStatusCode());
         JSONAssert.assertEquals("""
                      {
                         "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; For input string: \\"ab\\""
@@ -202,7 +202,7 @@ class ProductControllerITest {
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?size=ab", String.class);
 
         //then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(BAD_REQUEST, response.getStatusCode());
         JSONAssert.assertEquals("""
                      {
                         "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; For input string: \\"ab\\""
@@ -217,11 +217,60 @@ class ProductControllerITest {
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?pageNumber=2&size=3", String.class);
 
         //then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(BAD_REQUEST, response.getStatusCode());
         JSONAssert.assertEquals("""
                      {
                         "message": "Page number is out of range"
                      }
                      """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getProductByIdSuccess() throws JSONException {
+        //when
+        ResponseEntity<?> response = testRestTemplate.getForEntity("/products/1", String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "productId": 1,
+                    "name": "Name 1",
+                    "description": null,
+                    "price": 100.0,
+                    "amount": 10
+                }
+                """, (String) response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getProductByIdThrowsExceptionForInvalidId() throws JSONException {
+        //when
+        ResponseEntity<?> response = testRestTemplate.getForEntity("/products/ab", String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \\"ab\\""
+                }
+                """, (String) response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/insert-product-table.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getProductByIdThrowsExceptionForNonExistingProduct() throws JSONException {
+        //when
+        ResponseEntity<?> response = testRestTemplate.getForEntity("/products/100", String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Product with following id does not exist"
+                }
+                """, (String) response.getBody(), false);
     }
 }

@@ -36,8 +36,5 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Maven package
-        run: mvn clean package -B -DskipTests
-
       - name: Test
         run: mvn clean verify
