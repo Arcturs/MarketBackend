@@ -11,6 +11,7 @@ import ru.vsu.csf.asashina.market.model.dto.CategoryWithProductsDTO;
 import ru.vsu.csf.asashina.market.model.dto.PagingInfoDTO;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.market.model.request.CategoryCreateRequest;
+import ru.vsu.csf.asashina.market.model.request.ProductsListToAttachToCategoryRequest;
 import ru.vsu.csf.asashina.market.service.CategoryService;
 import ru.vsu.csf.asashina.market.service.ProductService;
 
@@ -54,5 +55,12 @@ public class CategoryController {
     @PostMapping("")
     public ResponseEntity<?> createCategoryFromRequest(@RequestBody @Valid CategoryCreateRequest request) {
         return ResponseBuilder.build(CREATED, categoryService.createCategoryFromCreateRequest(request));
+    }
+
+    //TODO: finish
+    @PostMapping("/{id}/attach-products")
+    public ResponseEntity<?> attachProductsToCategory(@PathVariable("id") Long id,
+                                                      @RequestBody @Valid ProductsListToAttachToCategoryRequest request) {
+        return null;
     }
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
 import ru.vsu.csf.asashina.market.serializer.PriceJsonSerializer;
 
-import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,5 +23,5 @@ public class ProductDTO {
 
     private Integer amount;
 
-    private List<CategoryDTO> categories;
+    private Set<CategoryDTO> categories;
 }

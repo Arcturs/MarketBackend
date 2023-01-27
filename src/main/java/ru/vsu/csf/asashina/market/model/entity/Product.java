@@ -3,8 +3,6 @@ package ru.vsu.csf.asashina.market.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Table(name = "product")
@@ -36,5 +34,5 @@ public class Product {
     @JoinTable(name = "product_category",
             joinColumns = {@JoinColumn(name = "product_id")},
             inverseJoinColumns = {@JoinColumn(name = "category_id")})
-    private List<Category> categories;
+    private Set<Category> categories;
 }

@@ -23,9 +23,9 @@ import ru.vsu.csf.asashina.market.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 import ru.vsu.csf.asashina.market.validator.PageValidator;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
@@ -81,7 +81,7 @@ class ProductServiceTest {
                         .name("Name 1")
                         .price(100.0F)
                         .amount(10)
-                        .categories(List.of(new Category(1L, "Name 1")))
+                        .categories(Set.of(new Category(1L, "Name 1")))
                         .build()
         ));
     }
@@ -116,7 +116,7 @@ class ProductServiceTest {
                         .name("Name 1")
                         .price(100.0F)
                         .amount(10)
-                        .categories(List.of(new CategoryDTO(1L, "Name 1")))
+                        .categories(Set.of(new CategoryDTO(1L, "Name 1")))
                         .build()
         ));
     }
@@ -154,12 +154,12 @@ class ProductServiceTest {
                 .build();
     }
 
-    private List<Category> createValidCategoryList() {
-        return List.of(new Category(1L, "Name 1"));
+    private Set<Category> createValidCategorySet() {
+        return Set.of(new Category(1L, "Name 1"));
     }
 
-    private List<CategoryDTO> createValidCategoryDTOList() {
-        return List.of(new CategoryDTO(1L, "Name 1"));
+    private Set<CategoryDTO> createValidCategoryDTOSet() {
+        return Set.of(new CategoryDTO(1L, "Name 1"));
     }
 
     @Test
@@ -287,7 +287,7 @@ class ProductServiceTest {
         ProductDTO expectedProduct = createValidProductDTO();
 
         when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
-        when(categoryService.getCategoryListByIds(null)).thenReturn(null);
+        when(categoryService.getCategoryDTOSetByIds(null)).thenReturn(null);
         when(productRepository.save(withoutIdProduct)).thenReturn(productFromRepository);
 
         //when
@@ -303,21 +303,22 @@ class ProductServiceTest {
         ProductCreateRequest request = createValidProductCreateRequest();
         request.setCategoriesId(List.of(1L));
 
-        List<Category> categoriesFromCategoryService = createValidCategoryList();
+        Set<CategoryDTO> categoriesFromCategoryService = createValidCategoryDTOSet();
+        Set<Category> entitiesCategory = createValidCategorySet();
         Product withoutIdProduct = Product.builder()
                 .productId(null)
                 .name("Name 1")
                 .price(100.0F)
                 .amount(10)
-                .categories(categoriesFromCategoryService)
+                .categories(entitiesCategory)
                 .build();
         Product productFromRepository = createValidProduct();
-        productFromRepository.setCategories(categoriesFromCategoryService);
+        productFromRepository.setCategories(entitiesCategory);
         ProductDTO expectedProduct = createValidProductDTO();
-        expectedProduct.setCategories(createValidCategoryDTOList());
+        expectedProduct.setCategories(createValidCategoryDTOSet());
 
         when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
-        when(categoryService.getCategoryListByIds(request.getCategoriesId()))
+        when(categoryService.getCategoryDTOSetByIds(request.getCategoriesId()))
                 .thenReturn(categoriesFromCategoryService);
         when(productRepository.save(withoutIdProduct)).thenReturn(productFromRepository);
 

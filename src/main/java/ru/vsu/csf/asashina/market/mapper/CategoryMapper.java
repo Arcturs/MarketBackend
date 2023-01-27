@@ -7,11 +7,16 @@ import ru.vsu.csf.asashina.market.model.entity.Category;
 import ru.vsu.csf.asashina.market.model.request.CategoryCreateRequest;
 
 import java.util.List;
+import java.util.Set;
 
 @Mapper
 public interface CategoryMapper {
 
     CategoryMapper INSTANCE = Mappers.getMapper(CategoryMapper.class);
+
+    Set<CategoryDTO> toDTOFromEntitySet(Set<Category> entities);
+
+    Set<Category> toEntityFromDTOSet(Set<CategoryDTO> dtos);
 
     List<CategoryDTO> toDTOFromEntityList(List<Category> entities);
 

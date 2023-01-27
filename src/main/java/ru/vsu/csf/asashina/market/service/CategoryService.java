@@ -12,6 +12,7 @@ import ru.vsu.csf.asashina.market.model.request.CategoryCreateRequest;
 import ru.vsu.csf.asashina.market.repository.CategoryRepository;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -21,9 +22,10 @@ public class CategoryService {
 
     private final CategoryMapper categoryMapper;
 
-    public List<Category> getCategoryListByIds(List<Long> ids) {
+    public Set<CategoryDTO> getCategoryDTOSetByIds(List<Long> ids) {
         if (ids != null) {
-            return categoryRepository.findAllByCategoryIdIn(ids);
+            Set<Category> categories = categoryRepository.findAllByCategoryIdIn(ids);
+            return categoryMapper.toDTOFromEntitySet(categories);
         }
         return null;
     }

@@ -10,7 +10,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.vsu.csf.asashina.market.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.mapper.CategoryMapper;
-import ru.vsu.csf.asashina.market.mapper.ProductMapper;
 import ru.vsu.csf.asashina.market.model.dto.CategoryDTO;
 import ru.vsu.csf.asashina.market.model.entity.Category;
 import ru.vsu.csf.asashina.market.model.request.CategoryCreateRequest;
@@ -18,6 +17,7 @@ import ru.vsu.csf.asashina.market.repository.CategoryRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,6 +34,14 @@ class CategoryServiceTest {
 
     @Spy
     private CategoryMapper categoryMapper = Mappers.getMapper(CategoryMapper.class);;
+
+    private Set<Category> createValidCategorySet() {
+        return Set.of(new Category(1L, "Name 1"));
+    }
+
+    private Set<CategoryDTO> createValidCategoryDTOSet() {
+        return Set.of(new CategoryDTO(1L, "Name 1"));
+    }
 
     private List<Category> createValidCategoryList() {
         return List.of(new Category(1L, "Name 1"));
@@ -56,15 +64,16 @@ class CategoryServiceTest {
         //given
         List<Long> ids = List.of(1L);
 
-        List<Category> expectedList = createValidCategoryList();
+        Set<Category> categoriesFromRepository = createValidCategorySet();
+        Set<CategoryDTO> expectedSet = createValidCategoryDTOSet();
 
-        when(categoryRepository.findAllByCategoryIdIn(ids)).thenReturn(expectedList);
+        when(categoryRepository.findAllByCategoryIdIn(ids)).thenReturn(categoriesFromRepository);
 
         //when
-        List<Category> result = categoryService.getCategoryListByIds(ids);
+        Set<CategoryDTO> result = categoryService.getCategoryDTOSetByIds(ids);
 
         //then
-        assertEquals(expectedList, result);
+        assertEquals(expectedSet, result);
     }
 
     @Test
@@ -73,7 +82,7 @@ class CategoryServiceTest {
         List<Long> ids = null;
 
         //when
-        List<Category> result = categoryService.getCategoryListByIds(ids);
+        Set<CategoryDTO> result = categoryService.getCategoryDTOSetByIds(ids);
 
         //then
         assertNull(result);
