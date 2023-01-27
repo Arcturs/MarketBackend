@@ -57,10 +57,11 @@ public class CategoryController {
         return ResponseBuilder.build(CREATED, categoryService.createCategoryFromCreateRequest(request));
     }
 
-    //TODO: finish
     @PostMapping("/{id}/attach-products")
     public ResponseEntity<?> attachProductsToCategory(@PathVariable("id") Long id,
                                                       @RequestBody @Valid ProductsListToAttachToCategoryRequest request) {
-        return null;
+        CategoryDTO category = categoryService.getCategoryById(id);
+        productService.attachCategoryToProducts(category, request);
+        return ResponseBuilder.buildWithoutBodyResponse(OK);
     }
 }

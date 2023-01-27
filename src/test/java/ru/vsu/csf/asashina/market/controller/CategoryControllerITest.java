@@ -19,6 +19,7 @@ import ru.vsu.csf.asashina.market.RequestBuilder;
 import ru.vsu.csf.asashina.market.repository.CategoryRepository;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -390,6 +391,88 @@ class CategoryControllerITest {
         JSONAssert.assertEquals("""
                 {
                     "message": "Category with following name already exists"
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void attachProductsToCategorySuccess() {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "productsId", List.of(2L)
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/categories/2/attach-products", request,
+                String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+
+        assertEquals(jdbcTemplate.queryForList("SELECT category_id FROM product_category WHERE product_id = 2", Long.class),
+                List.of(1L, 2L));
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void attachProductsToCategoryThrowsExceptionForInvalidId() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "productsId", List.of(2L)
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/categories/ab/attach-products", request,
+                String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void attachProductsToCategoryThrowsExceptionForNotExistingId() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "productsId", List.of(2L)
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/categories/100/attach-products", request,
+                String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "message": "Category with following id does not exist"
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void attachProductsToCategoryThrowsExceptionForNotExistingProductsIds() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "productsId", List.of(4L, 6L)
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/categories/2/attach-products", request,
+                String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "message": "Products with following ids do not exist"
                 }
                 """, response.getBody(), false);
     }

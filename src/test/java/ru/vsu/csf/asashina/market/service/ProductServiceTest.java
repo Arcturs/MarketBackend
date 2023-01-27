@@ -20,9 +20,11 @@ import ru.vsu.csf.asashina.market.model.entity.Category;
 import ru.vsu.csf.asashina.market.model.entity.Product;
 import ru.vsu.csf.asashina.market.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.market.model.request.ProductUpdateRequest;
+import ru.vsu.csf.asashina.market.model.request.ProductsListToAttachToCategoryRequest;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 import ru.vsu.csf.asashina.market.validator.PageValidator;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -408,5 +410,45 @@ class ProductServiceTest {
 
         //when, then
         assertThatThrownBy(() -> productService.deleteProductById(id)).isInstanceOf(ObjectNotExistException.class);
+    }
+
+    @Test
+    void attachCategoryToProductsSuccess() {
+        //given
+        CategoryDTO category = new CategoryDTO(1L, "Name 1");
+        ProductsListToAttachToCategoryRequest request = new ProductsListToAttachToCategoryRequest(List.of(2L));
+
+        List<Product> foundProductListFromRepository = List.of(Product.builder()
+                .productId(2L)
+                .name("Name 2")
+                .price(100.0F)
+                .amount(11)
+                .build());
+        List<Product> productsEntitiesWithAddedCategory = List.of(Product.builder()
+                .productId(2L)
+                .name("Name 2")
+                .price(100.0F)
+                .amount(11)
+                .categories(Set.of(new Category(1L, "Name 1")))
+                .build());
+
+        when(productRepository.findAllByProductIdIn(request.getProductsId())).thenReturn(foundProductListFromRepository);
+        //doNothing().when(productRepository).saveAll(productsEntitiesWithAddedCategory);
+
+        //when, then
+        assertDoesNotThrow(() -> productService.attachCategoryToProducts(category, request));
+    }
+
+    @Test
+    void attachCategoryToProductsThrowsExceptionWhenPassedNonExistingProductIds() {
+        //given
+        CategoryDTO category = new CategoryDTO(1L, "Name 1");
+        ProductsListToAttachToCategoryRequest request = new ProductsListToAttachToCategoryRequest(List.of(4L));
+
+        when(productRepository.findAllByProductIdIn(request.getProductsId())).thenReturn(Collections.emptyList());
+
+        //when, then
+        assertThatThrownBy(() -> productService.attachCategoryToProducts(category, request))
+                .isInstanceOf(ObjectNotExistException.class);
     }
 }

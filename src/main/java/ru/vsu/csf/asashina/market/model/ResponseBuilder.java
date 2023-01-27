@@ -35,8 +35,8 @@ public class ResponseBuilder {
         return build(httpStatus, new ExceptionDTO(e.getMessage()));
     }
 
-    public static ResponseEntity<?> buildNoContentResponse() {
-        return ResponseEntity.noContent().build();
+    public static ResponseEntity<?> buildWithoutBodyResponse(HttpStatus httpStatus) {
+        return ResponseEntity.status(httpStatus).build();
     }
 
 }

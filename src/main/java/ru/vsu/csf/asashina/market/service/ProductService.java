@@ -14,9 +14,12 @@ import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.market.model.entity.Product;
 import ru.vsu.csf.asashina.market.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.market.model.request.ProductUpdateRequest;
+import ru.vsu.csf.asashina.market.model.request.ProductsListToAttachToCategoryRequest;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 import ru.vsu.csf.asashina.market.validator.PageValidator;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -95,5 +98,34 @@ public class ProductService {
     public void deleteProductById(Long id) {
         Product product = findProductById(id);
         productRepository.delete(product);
+    }
+
+    @Transactional
+    public void attachCategoryToProducts(CategoryDTO category, ProductsListToAttachToCategoryRequest request) {
+        List<Product> products = productRepository.findAllByProductIdIn(request.getProductsId());
+        if (products.isEmpty()) {
+            throw new ObjectNotExistException("Products with following ids do not exist");
+        }
+
+        List<ProductDTO> productDTOS = products.stream()
+                .map(productMapper::toDTOFromEntity)
+                .toList();
+        addCategoryToProducts(productDTOS, category);
+        
+        List<Product> productsEntitiesWithAddedCategory = productDTOS.stream()
+                .map(productMapper::toEntityFromDTO)
+                .toList();
+        productRepository.saveAll(productsEntitiesWithAddedCategory);
+    }
+
+    private void addCategoryToProducts(List<ProductDTO> products, CategoryDTO category) {
+        for (ProductDTO product : products) {
+            Set<CategoryDTO> categories = product.getCategories();
+            if (categories == null) {
+                categories = new HashSet<>();
+            }
+            categories.add(category);
+            product.setCategories(categories);
+        }
     }
 }

@@ -25,6 +25,9 @@ public interface ProductMapper {
     @Mapping(target = "categories", expression = "java(categoryMapper.toEntityFromDTOSet(categories))")
     Product toEntityFromCreateRequest(ProductCreateRequest request, Set<CategoryDTO> categories);
 
+    @Mapping(target = "categories", expression = "java(categoryMapper.toEntityFromDTOSet(dto.getCategories()))")
+    Product toEntityFromDTO(ProductDTO dto);
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromUpdateRequest(ProductUpdateRequest request, @MappingTarget Product entity);
 }

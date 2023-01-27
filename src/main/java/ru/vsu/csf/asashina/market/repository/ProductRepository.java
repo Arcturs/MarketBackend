@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.vsu.csf.asashina.market.model.entity.Product;
 
+import java.util.List;
+
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
@@ -30,4 +32,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                                                                Pageable pageable);
 
     boolean existsProductByNameIgnoreCase(String name);
+
+    List<Product> findAllByProductIdIn(List<Long> ids);
 }

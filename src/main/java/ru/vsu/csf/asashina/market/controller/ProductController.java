@@ -11,8 +11,7 @@ import ru.vsu.csf.asashina.market.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.market.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.market.service.ProductService;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @AllArgsConstructor
@@ -49,6 +48,6 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProductById(@PathVariable("id") Long id) {
         productService.deleteProductById(id);
-        return ResponseBuilder.buildNoContentResponse();
+        return ResponseBuilder.buildWithoutBodyResponse(NO_CONTENT);
     }
 }
