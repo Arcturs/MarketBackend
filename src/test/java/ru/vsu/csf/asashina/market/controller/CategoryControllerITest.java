@@ -18,7 +18,7 @@ import ru.vsu.csf.asashina.market.repository.CategoryRepository;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)
@@ -66,6 +66,280 @@ class CategoryControllerITest {
                         "name": "V"
                     }
                 ]
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getAllProductsInCategoryInPagesByIdWithoutParams() throws JSONException {
+        //when
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/categories/1/products", String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "category": {
+                       "categoryId": 1,
+                       "name": "N"
+                   },
+                   "paging": {
+                       "pageNumber": 1,
+                       "size": 5,
+                       "totalPages": 1
+                   },
+                   "products": [
+                      {
+                          "productId": 2,
+                          "name": "Name 2",
+                          "description": null,
+                          "price": 56.60,
+                          "amount": 3,
+                          "categories": [
+                              {
+                                  "categoryId": 1,
+                                  "name": "N"
+                              }
+                          ]
+                      },
+                      {
+                          "productId": 1,
+                          "name": "Name 1",
+                          "description": null,
+                          "price": 100.00,
+                          "amount": 10,
+                          "categories": [
+                              {
+                                  "categoryId": 1,
+                                  "name": "N"
+                              },
+                              {
+                                  "categoryId": 2,
+                                  "name": "V"
+                              }
+                          ]
+                      }
+                   ]
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getAllProductsInCategoryInPagesByIdWithPageAndSizeParams() throws JSONException {
+        //when
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/categories/1/products?pageNumber=2&size=1",
+                String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "category": {
+                       "categoryId": 1,
+                       "name": "N"
+                   },
+                   "paging": {
+                       "pageNumber": 2,
+                       "size": 1,
+                       "totalPages": 2
+                   },
+                   "products": [
+                      {
+                          "productId": 1,
+                          "name": "Name 1",
+                          "description": null,
+                          "price": 100.00,
+                          "amount": 10,
+                          "categories": [
+                              {
+                                  "categoryId": 1,
+                                  "name": "N"
+                              },
+                              {
+                                  "categoryId": 2,
+                                  "name": "V"
+                              }
+                          ]
+                      }
+                   ]
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getAllProductsInCategoryInPagesByIdWithAscEqualsFalse() throws JSONException {
+        //when
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/categories/1/products?isAsc=", String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "category": {
+                       "categoryId": 1,
+                       "name": "N"
+                   },
+                   "paging": {
+                       "pageNumber": 1,
+                       "size": 5,
+                       "totalPages": 1
+                   },
+                   "products": [
+                      {
+                          "productId": 1,
+                          "name": "Name 1",
+                          "description": null,
+                          "price": 100.00,
+                          "amount": 10,
+                          "categories": [
+                              {
+                                  "categoryId": 1,
+                                  "name": "N"
+                              },
+                              {
+                                  "categoryId": 2,
+                                  "name": "V"
+                              }
+                          ]
+                      },
+                      {
+                          "productId": 2,
+                          "name": "Name 2",
+                          "description": null,
+                          "price": 56.60,
+                          "amount": 3,
+                          "categories": [
+                              {
+                                  "categoryId": 1,
+                                  "name": "N"
+                              }
+                          ]
+                      }
+                   ]
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getAllProductsInCategoryInPagesByIdWithNameParam() throws JSONException {
+        //when
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/categories/1/products?name=1",
+                String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "category": {
+                       "categoryId": 1,
+                       "name": "N"
+                   },
+                   "paging": {
+                       "pageNumber": 1,
+                       "size": 5,
+                       "totalPages": 1
+                   },
+                   "products": [
+                      {
+                          "productId": 1,
+                          "name": "Name 1",
+                          "description": null,
+                          "price": 100.00,
+                          "amount": 10,
+                          "categories": [
+                              {
+                                  "categoryId": 1,
+                                  "name": "N"
+                              },
+                              {
+                                  "categoryId": 2,
+                                  "name": "V"
+                              }
+                          ]
+                      }
+                   ]
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getAllProductsInCategoryInPagesByIdThrowsExceptionForInvalidId() throws JSONException {
+        //when
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/categories/ab/products", String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getAllProductsInCategoryInPagesByIdThrowsExceptionForNotExistingId() throws JSONException {
+        //when
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/categories/100/products", String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "message": "Category with following id does not exist"
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getAllProductsInCategoryInPagesByIdThrowsExceptionForInvalidPageNumber() throws JSONException {
+        //when
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/categories/1/products?pageNumber=ab",
+                String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getAllProductsInCategoryInPagesByIdThrowsExceptionForInvalidSize() throws JSONException {
+        //when
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/categories/1/products?size=ab",
+                String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getAllProductsInCategoryInPagesByIdThrowsExceptionWhenPageOutOfRange() throws JSONException {
+        //when
+        ResponseEntity<String> response = testRestTemplate.getForEntity("/categories/1/products?pageNumber=2&size=3",
+                String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "message": "Page number is out of range"
+                }
                 """, response.getBody(), false);
     }
 }

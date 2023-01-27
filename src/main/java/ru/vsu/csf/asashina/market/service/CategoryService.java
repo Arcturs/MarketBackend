@@ -2,6 +2,7 @@ package ru.vsu.csf.asashina.market.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.mapper.CategoryMapper;
 import ru.vsu.csf.asashina.market.model.dto.CategoryDTO;
 import ru.vsu.csf.asashina.market.model.entity.Category;
@@ -27,5 +28,16 @@ public class CategoryService {
     public List<CategoryDTO> getAllCategories() {
         List<Category> categories = categoryRepository.findAll();
         return categoryMapper.toDTOFromEntityList(categories);
+    }
+
+    public CategoryDTO getCategoryById(Long id) {
+        Category category = findCategoryById(id);
+        return categoryMapper.toDTOFromEntity(category);
+    }
+
+    private Category findCategoryById(Long id) {
+        return categoryRepository.findById(id).orElseThrow(
+                () -> new ObjectNotExistException("Category with following id does not exist")
+        );
     }
 }

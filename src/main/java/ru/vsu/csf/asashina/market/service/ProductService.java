@@ -34,9 +34,23 @@ public class ProductService {
     private final CategoryService categoryService;
 
     public Page<ProductDTO> getAllProductsInPagesByName(Integer pageNumber, Integer size, String name, Boolean isAsc) {
-        PageRequest pageRequest = PageRequest.of(pageNumber - 1, size,
-                isAsc ? Sort.by(PAGE_SORT_BY_PRICE).ascending() : Sort.by(PAGE_SORT_BY_PRICE).descending());
+        PageRequest pageRequest = buildPageRequest(pageNumber, size, isAsc);
         Page<Product> pages = productRepository.getProductInPagesAndSearchByName(name, pageRequest);
+
+        pageValidator.checkPageOutOfRange(pages, pageNumber);
+
+        return pages.map(productMapper::toDTOFromEntity);
+    }
+
+    private PageRequest buildPageRequest(Integer pageNumber, Integer size, Boolean isAsc) {
+        return PageRequest.of(pageNumber - 1, size,
+                isAsc ? Sort.by(PAGE_SORT_BY_PRICE).ascending() : Sort.by(PAGE_SORT_BY_PRICE).descending());
+    }
+
+    public Page<ProductDTO> getAllProductsInPagesByNameWithCategoryId(Long categoryId, Integer pageNumber, Integer size, String name, Boolean isAsc) {
+        PageRequest pageRequest = buildPageRequest(pageNumber, size, isAsc);
+        Page<Product> pages = productRepository.getProductInPagesAndSearchByNameWithCategory(name, categoryId,
+                pageRequest);
 
         pageValidator.checkPageOutOfRange(pages, pageNumber);
 

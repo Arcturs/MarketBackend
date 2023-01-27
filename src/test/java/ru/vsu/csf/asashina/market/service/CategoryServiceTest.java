@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.mapper.CategoryMapper;
 import ru.vsu.csf.asashina.market.mapper.ProductMapper;
 import ru.vsu.csf.asashina.market.model.dto.CategoryDTO;
@@ -14,7 +15,9 @@ import ru.vsu.csf.asashina.market.model.entity.Category;
 import ru.vsu.csf.asashina.market.repository.CategoryRepository;
 
 import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +39,14 @@ class CategoryServiceTest {
 
     private List<CategoryDTO> createValidCategoryDTOList() {
         return List.of(new CategoryDTO(1L, "Name 1"));
+    }
+
+    private Category createValidCategory() {
+        return new Category(1L, "Name 1");
+    }
+
+    private CategoryDTO createValidCategoryDTO() {
+        return new CategoryDTO(1L, "Name 1");
     }
 
     @Test
@@ -79,5 +90,33 @@ class CategoryServiceTest {
 
         //then
         assertEquals(expectedList, result);
+    }
+
+    @Test
+    void getCategoryByIdSuccess() {
+        //given
+        long id = 1L;
+
+        Category categoryFromRepository = createValidCategory();
+        CategoryDTO expectedCategory = createValidCategoryDTO();
+
+        when(categoryRepository.findById(id)).thenReturn(Optional.of(categoryFromRepository));
+
+        //when
+        CategoryDTO result = categoryService.getCategoryById(id);
+
+        //then
+        assertEquals(expectedCategory, result);
+    }
+
+    @Test
+    void getCategoryByIdThrowsExceptionWhenCategoryDoesNotExist() {
+        //given
+        long id = 2L;
+
+        when(categoryRepository.findById(id)).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> categoryService.getCategoryById(id)).isInstanceOf(ObjectNotExistException.class);
     }
 }

@@ -74,6 +74,18 @@ class ProductServiceTest {
         ));
     }
 
+    private Page<Product> createValidPagesWithCategory() {
+        return new PageImpl<>(List.of(
+                Product.builder()
+                        .productId(1L)
+                        .name("Name 1")
+                        .price(100.0F)
+                        .amount(10)
+                        .categories(List.of(new Category(1L, "Name 1")))
+                        .build()
+        ));
+    }
+
     private Page<ProductDTO> createValidPagesDTO() {
         return new PageImpl<>(List.of(
                 ProductDTO.builder()
@@ -93,6 +105,18 @@ class ProductServiceTest {
                         .name("Name 3")
                         .price(120.6F)
                         .amount(10)
+                        .build()
+        ));
+    }
+
+    private Page<ProductDTO> createValidPagesDTOWithCategory() {
+        return new PageImpl<>(List.of(
+                ProductDTO.builder()
+                        .productId(1L)
+                        .name("Name 1")
+                        .price(100.0F)
+                        .amount(10)
+                        .categories(List.of(new CategoryDTO(1L, "Name 1")))
                         .build()
         ));
     }
@@ -175,6 +199,48 @@ class ProductServiceTest {
         //when, then
         assertThatThrownBy(() -> productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc))
                 .isInstanceOf(PageException.class);
+    }
+
+    @Test
+    void getAllProductsInPagesByNameWithCategoryIdSuccess() {
+        //given
+        long categoryId = 1L;
+        int pageNumber = 1;
+        int size = 2;
+        String name = "";
+        boolean isAsc = true;
+
+        Page<Product> pagesFromRepository = createValidPagesWithCategory();
+        Page<ProductDTO> expectedPages = createValidPagesDTOWithCategory();
+
+        when(productRepository.getProductInPagesAndSearchByNameWithCategory(eq(name), eq(categoryId),
+                any(Pageable.class))).thenReturn(pagesFromRepository);
+
+        //when
+        Page<ProductDTO> result = productService.getAllProductsInPagesByNameWithCategoryId(categoryId, pageNumber, size,
+                name, isAsc);
+
+        //then
+        assertEquals(expectedPages, result);
+    }
+
+    @Test
+    void getAllProductsInPagesByNameWithCategoryIdThrowsExceptionForPageOutOfRange() {
+        //given
+        long categoryId = 1L;
+        int pageNumber = 5;
+        int size = 2;
+        String name = "";
+        boolean isAsc = false;
+
+        Page<Product> pagesFromRepository = createValidPagesWithCategory();
+
+        when(productRepository.getProductInPagesAndSearchByNameWithCategory(eq(name), eq(categoryId),
+                any(Pageable.class))).thenReturn(pagesFromRepository);
+
+        //when, then
+        assertThatThrownBy(() -> productService.getAllProductsInPagesByNameWithCategoryId(categoryId, pageNumber, size,
+                name, isAsc)).isInstanceOf(PageException.class);
     }
 
     @Test

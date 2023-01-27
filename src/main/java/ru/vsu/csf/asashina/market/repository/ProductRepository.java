@@ -18,5 +18,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                     """, nativeQuery = true)
     Page<Product> getProductInPagesAndSearchByName(@Param("name") String name, Pageable pageable);
 
+    @Query(value = """
+                    SELECT p
+                    FROM Product p
+                    JOIN p.categories c 
+                      ON c.categoryId = :categoryId
+                    WHERE LOWER(p.name) LIKE CONCAT('%', LOWER(:name), '%')
+                    """)
+    Page<Product> getProductInPagesAndSearchByNameWithCategory(@Param("name") String name,
+                                                               @Param("categoryId") Long categoryId,
+                                                               Pageable pageable);
+
     boolean existsProductByNameIgnoreCase(String name);
 }
