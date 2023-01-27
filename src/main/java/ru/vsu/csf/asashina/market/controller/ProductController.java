@@ -50,4 +50,11 @@ public class ProductController {
         productService.deleteProductById(id);
         return ResponseBuilder.buildWithoutBodyResponse(NO_CONTENT);
     }
+
+    @DeleteMapping("/{id}/remove-category/{categoryId}")
+    public ResponseEntity<?> removeCategoryFromProduct(@PathVariable("id") Long id,
+                                                       @PathVariable("categoryId") Long categoryId) {
+        productService.removeCategoryFromProduct(id, categoryId);
+        return ResponseBuilder.buildWithoutBodyResponse(NO_CONTENT);
+    }
 }

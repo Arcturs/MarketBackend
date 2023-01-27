@@ -572,4 +572,97 @@ class ProductControllerITest {
                 }
                 """, response.getBody(), false);
     }
+
+    @Test
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void removeCategoryFromProductSuccess() {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/1",
+                HttpMethod.DELETE, request, String.class);
+
+        //then
+        assertEquals(NO_CONTENT, response.getStatusCode());
+
+        assertEquals(jdbcTemplate.queryForObject("SELECT category_id FROM product_category WHERE product_id = 1",
+                Long.class), 2L);
+    }
+
+    @Test
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void removeCategoryFromProductThrowsExceptionForInvalidProductId() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/ab/remove-category/1",
+                HttpMethod.DELETE, request, String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void removeCategoryFromProductThrowsExceptionForInvalidCategoryId() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/ab",
+                HttpMethod.DELETE, request, String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void removeCategoryFromProductThrowsExceptionForNotExistingProductId() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/100/remove-category/1",
+                HttpMethod.DELETE, request, String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Product with following id does not exist"
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void removeCategoryFromProductThrowsExceptionForNotExistingCategoryId() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/100",
+                HttpMethod.DELETE, request, String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Category with following id does not exist"
+                }
+                """, response.getBody(), false);
+    }
 }

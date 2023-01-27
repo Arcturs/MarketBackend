@@ -128,4 +128,11 @@ public class ProductService {
             product.setCategories(categories);
         }
     }
+
+    @Transactional
+    public void removeCategoryFromProduct(Long id, Long categoryId) {
+        findProductById(id);
+        categoryService.getCategoryById(categoryId);
+        productRepository.removeCategoryFromProduct(id, categoryId);
+    }
 }

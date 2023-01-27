@@ -450,4 +450,44 @@ class ProductServiceTest {
         assertThatThrownBy(() -> productService.attachCategoryToProducts(category, request))
                 .isInstanceOf(ObjectNotExistException.class);
     }
+
+    @Test
+    void removeCategoryFromProductSuccess() {
+        //given
+        long id = 1L;
+        long categoryId = 1L;
+
+        when(productRepository.findById(id)).thenReturn(Optional.of(createValidProduct()));
+        when(categoryService.getCategoryById(categoryId)).thenReturn(new CategoryDTO());
+
+        //when, then
+        assertDoesNotThrow(() -> productService.removeCategoryFromProduct(id, categoryId));
+    }
+
+    @Test
+    void removeCategoryFromProductThrowsExceptionForNonExistingCategory() {
+        //given
+        long id = 1L;
+        long categoryId = 2L;
+
+        when(productRepository.findById(id)).thenReturn(Optional.of(createValidProduct()));
+        when(categoryService.getCategoryById(categoryId)).thenThrow(ObjectNotExistException.class);
+
+        //when, then
+        assertThatThrownBy(() -> productService.removeCategoryFromProduct(id, categoryId))
+                .isInstanceOf(ObjectNotExistException.class);
+    }
+
+    @Test
+    void removeCategoryFromProductThrowsExceptionForNonExistingProduct() {
+        //given
+        long id = 2L;
+        long categoryId = 1L;
+
+        when(productRepository.findById(id)).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> productService.removeCategoryFromProduct(id, categoryId))
+                .isInstanceOf(ObjectNotExistException.class);
+    }
 }
