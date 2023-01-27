@@ -63,7 +63,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesWithoutParams() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products", String.class);
@@ -121,7 +121,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesWithPageAndSizeParams() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?pageNumber=2&size=2", String.class);
@@ -149,7 +149,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesWithAscEqualsFalse() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?isAsc=", String.class);
@@ -207,7 +207,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesWithNameParam() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?name=1", String.class);
@@ -245,7 +245,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesThrowsExceptionForInvalidPageNumber() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?pageNumber=ab", String.class);
@@ -260,7 +260,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesThrowsExceptionForInvalidSize() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?size=ab", String.class);
@@ -275,7 +275,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllProductsInPagesThrowsExceptionWhenPageOutOfRange() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products?pageNumber=2&size=3", String.class);
@@ -290,7 +290,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getProductByIdSuccess() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products/1", String.class);
@@ -319,7 +319,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products/ab", String.class);
@@ -334,7 +334,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getProductByIdThrowsExceptionForNonExistingProduct() throws JSONException {
         //when
         ResponseEntity<String> response = testRestTemplate.getForEntity("/products/100", String.class);
@@ -349,7 +349,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductSuccess() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -378,7 +378,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductSuccessWithCategory() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -416,7 +416,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductThrowsExceptionWhenObjectWithRequestedNameAlreadyExists() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -441,7 +441,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdSuccess() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -483,7 +483,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -505,7 +505,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForNotExistingObject() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
@@ -527,7 +527,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdSuccess() {
         //given
         HttpEntity<Map<String, Object>> request = createRequest();
@@ -544,7 +544,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequest();
@@ -563,7 +563,7 @@ class ProductControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/productControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForNotExistingId() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = createRequest();
