@@ -15,8 +15,7 @@ import ru.vsu.csf.asashina.market.model.request.ProductsListToAttachToCategoryRe
 import ru.vsu.csf.asashina.market.service.CategoryService;
 import ru.vsu.csf.asashina.market.service.ProductService;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @AllArgsConstructor
@@ -63,5 +62,11 @@ public class CategoryController {
         CategoryDTO category = categoryService.getCategoryById(id);
         productService.attachCategoryToProducts(category, request);
         return ResponseBuilder.buildWithoutBodyResponse(OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCategoryById(@PathVariable("id") Long id) {
+        categoryService.deleteCategoryById(id);
+        return ResponseBuilder.buildWithoutBodyResponse(NO_CONTENT);
     }
 }

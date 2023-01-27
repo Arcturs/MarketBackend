@@ -433,7 +433,6 @@ class ProductServiceTest {
                 .build());
 
         when(productRepository.findAllByProductIdIn(request.getProductsId())).thenReturn(foundProductListFromRepository);
-        //doNothing().when(productRepository).saveAll(productsEntitiesWithAddedCategory);
 
         //when, then
         assertDoesNotThrow(() -> productService.attachCategoryToProducts(category, request));

@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
@@ -473,6 +474,61 @@ class CategoryControllerITest {
         JSONAssert.assertEquals("""
                 {
                    "message": "Products with following ids do not exist"
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void deleteCategoryByIdSuccess() {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/categories/1", HttpMethod.DELETE, request,
+                String.class);
+
+        //then
+        assertEquals(NO_CONTENT, response.getStatusCode());
+
+        assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM category WHERE category_id = 1)",
+                Boolean.class), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void deleteCategoryByIdThrowsExceptionForInvalidId() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/categories/ab", HttpMethod.DELETE, request,
+                String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void deleteCategoryByIdThrowsExceptionForNotExistingCategory() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/categories/90", HttpMethod.DELETE, request,
+                String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                   "message": "Category with following id does not exist"
                 }
                 """, response.getBody(), false);
     }

@@ -55,4 +55,10 @@ public class CategoryService {
         Category categoryWithId = categoryRepository.save(beforeSavingToRepositoryCategory);
         return categoryMapper.toDTOFromEntity(categoryWithId);
     }
+
+    @Transactional
+    public void deleteCategoryById(Long id) {
+        Category category = findCategoryById(id);
+        categoryRepository.delete(category);
+    }
 }

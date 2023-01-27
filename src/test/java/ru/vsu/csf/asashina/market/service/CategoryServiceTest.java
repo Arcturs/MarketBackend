@@ -161,4 +161,28 @@ class CategoryServiceTest {
         assertThatThrownBy(() -> categoryService.createCategoryFromCreateRequest(request))
                 .isInstanceOf(ObjectAlreadyExistsException.class);
     }
+
+    @Test
+    void deleteCategoryByIdSuccess() {
+        //given
+        long id = 1L;
+
+        Category foundCategoryFromRepository = createValidCategory();
+
+        when(categoryRepository.findById(id)).thenReturn(Optional.of(foundCategoryFromRepository));
+
+        //when, then
+        assertDoesNotThrow(() -> categoryService.deleteCategoryById(id));
+    }
+
+    @Test
+    void deleteCategoryByIdThrowsExceptionForNonExistingCategory() {
+        //given
+        long id = 2L;
+
+        when(categoryRepository.findById(id)).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> categoryService.deleteCategoryById(id)).isInstanceOf(ObjectNotExistException.class);
+    }
 }
