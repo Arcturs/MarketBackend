@@ -14,6 +14,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
+import ru.vsu.csf.asashina.market.RequestBuilder;
 import ru.vsu.csf.asashina.market.repository.CategoryRepository;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 
@@ -36,6 +37,9 @@ class ProductControllerITest {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
+    private RequestBuilder requestBuilder;
+
+    @Autowired
     private ProductRepository productRepository;
 
     @Autowired
@@ -48,18 +52,6 @@ class ProductControllerITest {
 
         categoryRepository.deleteAll();
         jdbcTemplate.execute("ALTER TABLE category ALTER COLUMN category_id RESTART WITH 1");
-    }
-
-    private HttpEntity<Map<String, Object>> createRequestWithRequestBody(Map<String, Object> requestBody) {
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity<>(requestBody, headers);
-    }
-
-    private HttpEntity<Map<String, Object>> createRequest() {
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity<>(headers);
     }
 
     @Test
@@ -352,7 +344,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductSuccess() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
                 "name", "Name 4",
                 "price", "67.67",
                 "amount", "4"
@@ -381,7 +373,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductSuccessWithCategory() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
                 "name", "Name 4",
                 "price", "67.67",
                 "amount", "4",
@@ -419,7 +411,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductThrowsExceptionWhenObjectWithRequestedNameAlreadyExists() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
                 "name", "Name 1",
                 "price", "67.67",
                 "amount", "4"
@@ -444,7 +436,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdSuccess() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
                 "amount", "12",
                 "description", "Cool"
         ));
@@ -486,7 +478,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
                 "amount", "12",
                 "description", "Cool"
         ));
@@ -508,7 +500,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForNotExistingObject() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
                 "amount", "12",
                 "description", "Cool"
         ));
@@ -530,7 +522,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdSuccess() {
         //given
-        HttpEntity<Map<String, Object>> request = createRequest();
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1", HttpMethod.DELETE, request,
@@ -547,7 +539,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = createRequest();
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/ab", HttpMethod.DELETE, request,
@@ -566,7 +558,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForNotExistingId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = createRequest();
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/100", HttpMethod.DELETE, request,

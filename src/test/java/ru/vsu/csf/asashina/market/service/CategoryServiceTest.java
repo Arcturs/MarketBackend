@@ -7,11 +7,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.vsu.csf.asashina.market.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.mapper.CategoryMapper;
 import ru.vsu.csf.asashina.market.mapper.ProductMapper;
 import ru.vsu.csf.asashina.market.model.dto.CategoryDTO;
 import ru.vsu.csf.asashina.market.model.entity.Category;
+import ru.vsu.csf.asashina.market.model.request.CategoryCreateRequest;
 import ru.vsu.csf.asashina.market.repository.CategoryRepository;
 
 import java.util.List;
@@ -118,5 +120,36 @@ class CategoryServiceTest {
 
         //when, then
         assertThatThrownBy(() -> categoryService.getCategoryById(id)).isInstanceOf(ObjectNotExistException.class);
+    }
+
+    @Test
+    void createCategoryFromCreateRequestSuccess() {
+        //given
+        CategoryCreateRequest request = new CategoryCreateRequest("Name 1");
+
+        Category categoryBeforeSavingToRepository = new Category(null, "Name 1");
+        Category categoryAfterSavingToRepository = createValidCategory();
+        CategoryDTO expectedCategory = createValidCategoryDTO();
+
+        when(categoryRepository.existsCategoryByNameIgnoreCase(request.getName())).thenReturn(false);
+        when(categoryRepository.save(categoryBeforeSavingToRepository)).thenReturn(categoryAfterSavingToRepository);
+
+        //when
+        CategoryDTO result = categoryService.createCategoryFromCreateRequest(request);
+
+        //then
+        assertEquals(expectedCategory, result);
+    }
+
+    @Test
+    void createCategoryFromCreateRequestThrowsExceptionForAlreadyExistingCategory() {
+        //given
+        CategoryCreateRequest request = new CategoryCreateRequest("Name 2");
+
+        when(categoryRepository.existsCategoryByNameIgnoreCase(request.getName())).thenReturn(true);
+
+        //when, then
+        assertThatThrownBy(() -> categoryService.createCategoryFromCreateRequest(request))
+                .isInstanceOf(ObjectAlreadyExistsException.class);
     }
 }

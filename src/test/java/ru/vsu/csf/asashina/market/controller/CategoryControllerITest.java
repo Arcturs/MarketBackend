@@ -11,11 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
+import ru.vsu.csf.asashina.market.RequestBuilder;
 import ru.vsu.csf.asashina.market.repository.CategoryRepository;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.*;
@@ -31,6 +35,9 @@ class CategoryControllerITest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private RequestBuilder requestBuilder;
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -339,6 +346,50 @@ class CategoryControllerITest {
         JSONAssert.assertEquals("""
                 {
                    "message": "Page number is out of range"
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void createCategoryFromRequestSuccess() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "name", "R"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/categories", request, String.class);
+
+        //then
+        assertEquals(CREATED, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "categoryId": 3,
+                    "name": "R"
+                }
+                """, response.getBody(), false);
+
+        assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM category WHERE category_id = 3)",
+                Boolean.class), true);
+    }
+
+    @Test
+    @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void createCategoryFromRequestThrowsExceptionForAlreadyExistingCategory() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "name", "n"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/categories", request, String.class);
+
+        //then
+        assertEquals(CONFLICT, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Category with following name already exists"
                 }
                 """, response.getBody(), false);
     }

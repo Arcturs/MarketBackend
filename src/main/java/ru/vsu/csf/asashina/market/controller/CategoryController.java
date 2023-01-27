@@ -1,5 +1,6 @@
 package ru.vsu.csf.asashina.market.controller;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -9,9 +10,11 @@ import ru.vsu.csf.asashina.market.model.dto.CategoryDTO;
 import ru.vsu.csf.asashina.market.model.dto.CategoryWithProductsDTO;
 import ru.vsu.csf.asashina.market.model.dto.PagingInfoDTO;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
+import ru.vsu.csf.asashina.market.model.request.CategoryCreateRequest;
 import ru.vsu.csf.asashina.market.service.CategoryService;
 import ru.vsu.csf.asashina.market.service.ProductService;
 
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
@@ -46,5 +49,10 @@ public class CategoryController {
                 .products(products.getContent())
                 .paging(new PagingInfoDTO(pageNumber, size, products.getTotalPages()))
                 .build();
+    }
+
+    @PostMapping("")
+    public ResponseEntity<?> createCategoryFromRequest(@RequestBody @Valid CategoryCreateRequest request) {
+        return ResponseBuilder.build(CREATED, categoryService.createCategoryFromCreateRequest(request));
     }
 }
