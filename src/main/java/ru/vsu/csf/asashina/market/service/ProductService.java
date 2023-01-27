@@ -9,12 +9,18 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.vsu.csf.asashina.market.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.market.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.market.mapper.ProductMapper;
+import ru.vsu.csf.asashina.market.model.dto.CategoryDTO;
 import ru.vsu.csf.asashina.market.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.market.model.entity.Product;
 import ru.vsu.csf.asashina.market.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.market.model.request.ProductUpdateRequest;
+import ru.vsu.csf.asashina.market.model.request.ProductsListToAttachToCategoryRequest;
 import ru.vsu.csf.asashina.market.repository.ProductRepository;
 import ru.vsu.csf.asashina.market.validator.PageValidator;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -28,10 +34,26 @@ public class ProductService {
 
     private final PageValidator pageValidator;
 
+    private final CategoryService categoryService;
+
     public Page<ProductDTO> getAllProductsInPagesByName(Integer pageNumber, Integer size, String name, Boolean isAsc) {
-        PageRequest pageRequest = PageRequest.of(pageNumber - 1, size,
-                isAsc ? Sort.by(PAGE_SORT_BY_PRICE).ascending() : Sort.by(PAGE_SORT_BY_PRICE).descending());
+        PageRequest pageRequest = buildPageRequest(pageNumber, size, isAsc);
         Page<Product> pages = productRepository.getProductInPagesAndSearchByName(name, pageRequest);
+
+        pageValidator.checkPageOutOfRange(pages, pageNumber);
+
+        return pages.map(productMapper::toDTOFromEntity);
+    }
+
+    private PageRequest buildPageRequest(Integer pageNumber, Integer size, Boolean isAsc) {
+        return PageRequest.of(pageNumber - 1, size,
+                isAsc ? Sort.by(PAGE_SORT_BY_PRICE).ascending() : Sort.by(PAGE_SORT_BY_PRICE).descending());
+    }
+
+    public Page<ProductDTO> getAllProductsInPagesByNameWithCategoryId(Long categoryId, Integer pageNumber, Integer size, String name, Boolean isAsc) {
+        PageRequest pageRequest = buildPageRequest(pageNumber, size, isAsc);
+        Page<Product> pages = productRepository.getProductInPagesAndSearchByNameWithCategory(name, categoryId,
+                pageRequest);
 
         pageValidator.checkPageOutOfRange(pages, pageNumber);
 
@@ -52,7 +74,8 @@ public class ProductService {
     @Transactional
     public ProductDTO createProductFromCreateRequest(ProductCreateRequest request) {
         checkProductNameExistsByName(request.getName());
-        Product entityFromCreateRequest = productMapper.toEntityFromCreateRequest(request);
+        Set<CategoryDTO> categoriesFromRequest = categoryService.getCategoryDTOSetByIds(request.getCategoriesId());
+        Product entityFromCreateRequest = productMapper.toEntityFromCreateRequest(request, categoriesFromRequest);
         Product createdProductWithId = productRepository.save(entityFromCreateRequest);
         return productMapper.toDTOFromEntity(createdProductWithId);
     }
@@ -75,5 +98,41 @@ public class ProductService {
     public void deleteProductById(Long id) {
         Product product = findProductById(id);
         productRepository.delete(product);
+    }
+
+    @Transactional
+    public void attachCategoryToProducts(CategoryDTO category, ProductsListToAttachToCategoryRequest request) {
+        List<Product> products = productRepository.findAllByProductIdIn(request.getProductsId());
+        if (products.isEmpty()) {
+            throw new ObjectNotExistException("Products with following ids do not exist");
+        }
+
+        List<ProductDTO> productDTOS = products.stream()
+                .map(productMapper::toDTOFromEntity)
+                .toList();
+        addCategoryToProducts(productDTOS, category);
+        
+        List<Product> productsEntitiesWithAddedCategory = productDTOS.stream()
+                .map(productMapper::toEntityFromDTO)
+                .toList();
+        productRepository.saveAll(productsEntitiesWithAddedCategory);
+    }
+
+    private void addCategoryToProducts(List<ProductDTO> products, CategoryDTO category) {
+        for (ProductDTO product : products) {
+            Set<CategoryDTO> categories = product.getCategories();
+            if (categories == null) {
+                categories = new HashSet<>();
+            }
+            categories.add(category);
+            product.setCategories(categories);
+        }
+    }
+
+    @Transactional
+    public void removeCategoryFromProduct(Long id, Long categoryId) {
+        findProductById(id);
+        categoryService.getCategoryById(categoryId);
+        productRepository.removeCategoryFromProduct(id, categoryId);
     }
 }
