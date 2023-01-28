@@ -1,4 +1,4 @@
-name: Build
+name: Build Market Server
 
 on:
   push:
@@ -19,6 +19,9 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Moving to MarketServer directory
+        run: cd MarketServer
+
       - name: Maven package
         run: mvn clean package -B -DskipTests
 
@@ -35,6 +38,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
+
+      - name: Moving to MarketServer directory
+        run: cd MarketServer
 
       - name: Test
         run: mvn clean verify
