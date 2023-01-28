@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.exception.PageException;
+import ru.vsu.csf.asashina.marketserver.exception.PasswordsDoNotMatchException;
 import ru.vsu.csf.asashina.marketserver.model.ResponseBuilder;
 import ru.vsu.csf.asashina.marketserver.model.dto.ExceptionDTO;
 
@@ -29,7 +30,7 @@ public class ExceptionHandlerController {
         return ResponseBuilder.build(INTERNAL_SERVER_ERROR, new ExceptionDTO("Internal server error"));
     }
 
-    @ExceptionHandler({PageException.class, TypeMismatchException.class})
+    @ExceptionHandler({PageException.class, TypeMismatchException.class, PasswordsDoNotMatchException.class})
     public ResponseEntity<?> badRequestExceptionHandler(Exception e) {
         return ResponseBuilder.build(BAD_REQUEST, e);
     }
