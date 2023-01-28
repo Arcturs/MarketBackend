@@ -1,6 +1,6 @@
 version: '3'
 services:
-  postgres:
+  marketDB:
     image: postgres:15.1-alpine
     restart: always
     ports:
@@ -11,4 +11,4 @@ services:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_NAME}
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - ./marketdb_data:/var/lib/postgresql/data
