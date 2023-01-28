@@ -19,11 +19,10 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Moving to MarketServer directory
-        run: cd MarketServer
-
       - name: Maven package
-        run: mvn clean package -B -DskipTests
+        run: |
+          cd MarketServer
+          mvn clean package -B -DskipTests
 
   test:
     needs: build
@@ -39,8 +38,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Moving to MarketServer directory
-        run: cd MarketServer
-
       - name: Test
-        run: mvn clean verify
+        run: |
+          cd MarketServer
+          mvn clean verify
