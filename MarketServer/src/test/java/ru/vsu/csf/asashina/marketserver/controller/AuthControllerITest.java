@@ -203,4 +203,62 @@ class AuthControllerITest {
                 }
                 """,  response.getBody(), false);
     }
+
+    @Test
+    @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void refreshTokenSuccess() {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "refreshToken", "8e58d2a2-8ba3-4afd-9d8b-d68a15a0dec4"
+        ));
+        
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/auth/refresh-token", request, 
+                String.class);
+        
+        //then
+        assertEquals(OK, response.getStatusCode());
+    }
+
+    @Test
+    @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void refreshTokenThrowsExceptionForNonExistingRefreshToken() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "refreshToken", "8e58d2a5-8ba3-4afd-9d8b-d68a15a0dec4"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/auth/refresh-token", request,
+                String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Following refresh token does not exist"
+                }
+                """,  response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void refreshTokenThrowsExceptionForExpiredToken() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "refreshToken", "08d171a8-1895-4340-a88f-1536fd8315b0"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/auth/refresh-token", request,
+                String.class);
+
+        //then
+        assertEquals(UNAUTHORIZED, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Token is already expired"
+                }
+                """,  response.getBody(), false);
+    }
 }

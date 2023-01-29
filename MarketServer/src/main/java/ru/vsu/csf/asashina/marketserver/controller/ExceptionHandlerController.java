@@ -1,5 +1,6 @@
 package ru.vsu.csf.asashina.marketserver.controller;
 
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -46,7 +47,7 @@ public class ExceptionHandlerController {
                         )));
     }
 
-    @ExceptionHandler({TokenValidationException.class})
+    @ExceptionHandler({TokenValidationException.class, TokenExpiredException.class})
     public ResponseEntity<?> unauthorizedExceptionHandler(Exception e) {
         return ResponseBuilder.build(UNAUTHORIZED, e);
     }

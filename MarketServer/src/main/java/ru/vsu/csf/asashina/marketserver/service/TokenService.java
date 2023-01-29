@@ -14,13 +14,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.model.dto.TokensDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.UserDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.RefreshToken;
+import ru.vsu.csf.asashina.marketserver.model.request.RefreshTokenRequest;
 import ru.vsu.csf.asashina.marketserver.repository.RefreshTokenRepository;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -35,6 +36,7 @@ public class TokenService {
     private final static String EXPIRATION_CLAIM = "Expiration";
 
     private final UserDetailsService userDetailsService;
+    private final UserService userService;
 
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -71,7 +73,13 @@ public class TokenService {
     }
 
     private void checkIfTokenIsExpired(Date tokenExpireDate) {
-        if (tokenExpireDate.after(new Date())) {
+        if (tokenExpireDate.before(new Date())) {
+            throw new TokenExpiredException("Token is already expired", Instant.now());
+        }
+    }
+
+    private void checkIfTokenIsExpired(Instant tokenExpireDate) {
+        if (tokenExpireDate.isBefore(Instant.now())) {
             throw new TokenExpiredException("Token is already expired", Instant.now());
         }
     }
@@ -115,5 +123,20 @@ public class TokenService {
 
     private int fromDaysToSeconds(int days) {
         return days * 24 * 60 * 60;
+    }
+
+    public TokensDTO refreshAccessToken(RefreshTokenRequest request) {
+        RefreshToken refreshToken = findRefreshTokenById(request.getRefreshToken());
+        checkIfTokenIsExpired(refreshToken.getExpireDate());
+        return new TokensDTO(
+                generateAccessToken(userService.getUserByEmail(refreshToken.getUser().getEmail())),
+                refreshToken.getRefreshToken()
+        );
+    }
+
+    private RefreshToken findRefreshTokenById(String refreshToken) {
+        return refreshTokenRepository.findById(refreshToken).orElseThrow(
+                () -> new ObjectNotExistException("Following refresh token does not exist")
+        );
     }
 }
