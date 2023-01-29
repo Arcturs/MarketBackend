@@ -6,3 +6,7 @@ spring:
 
   liquibase:
     change-log: classpath:db/changelog/changelog-master.xml
+
+security:
+  jwt:
+    secret-key: ${JWT_SECRET_KEY:E)H@McQfTjWnZr4u7x!z%C*F-JaNdRgU}

@@ -27,3 +27,7 @@ spring:
             type:
               descriptor:
                 sql: trace
+
+security:
+  jwt:
+    secret-key: test

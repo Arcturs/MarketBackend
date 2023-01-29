@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectAlreadyExistsException;
+import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.exception.PasswordsDoNotMatchException;
 import ru.vsu.csf.asashina.marketserver.exception.WrongCredentialsException;
 import ru.vsu.csf.asashina.marketserver.mapper.UserMapper;
@@ -175,5 +176,33 @@ class UserServiceTest {
 
         //when, then
         assertThatThrownBy(() -> userService.loginUser(request)).isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void getUserByEmailSuccess() {
+        //given
+        String email = "hh@com.com";
+
+        User userFromRepository = createValidUser();
+        UserDTO expectedUser = createValidUserDTO();
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(userFromRepository));
+
+        //when
+        UserDTO result = userService.getUserByEmail(email);
+
+        //then
+        assertEquals(expectedUser, result);
+    }
+
+    @Test
+    void getUserByEmailThrowsExceptionForNotExistingUser() {
+        //given
+        String email = "hh!@com.com";
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> userService.getUserByEmail(email)).isInstanceOf(ObjectNotExistException.class);
     }
 }

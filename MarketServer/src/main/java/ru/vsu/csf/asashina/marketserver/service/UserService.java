@@ -94,4 +94,9 @@ public class UserService {
             throw new AccessDeniedException("Access denied");
         }
     }
+
+    public UserDTO getUserByEmail(String email) {
+        User user = findUserByEmail(email);
+        return userMapper.toDTOFromEntity(user);
+    }
 }

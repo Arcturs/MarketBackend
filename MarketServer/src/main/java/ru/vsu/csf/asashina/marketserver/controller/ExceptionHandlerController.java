@@ -46,6 +46,11 @@ public class ExceptionHandlerController {
                         )));
     }
 
+    @ExceptionHandler({TokenValidationException.class})
+    public ResponseEntity<?> unauthorizedExceptionHandler(Exception e) {
+        return ResponseBuilder.build(UNAUTHORIZED, e);
+    }
+
     @ExceptionHandler({AccessDeniedException.class})
     public ResponseEntity<?> forbiddenExceptionHandler(Exception e) {
         return ResponseBuilder.build(FORBIDDEN, e);
