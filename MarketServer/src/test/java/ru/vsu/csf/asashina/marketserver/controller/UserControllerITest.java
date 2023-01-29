@@ -116,4 +116,83 @@ class UserControllerITest {
                 }
                 """,  response.getBody(), false);
     }
+
+    @Test
+    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void loginUserSuccess() {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "email", "em1@jar.com",
+                "password", "password"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/login", request, String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+    }
+
+    @Test
+    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void loginUserThrowsExceptionForNonExistingEmail() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "email", "em12@jar.com",
+                "password", "password"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/login", request, String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Wrong email or password"
+                }
+                """,  response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void loginUserThrowsExceptionWhenPasswordDoesNotMatch() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "email", "em1@jar.com",
+                "password", "dumbpass"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/login", request, String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Wrong email or password"
+                }
+                """,  response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void loginUserThrowsExceptionWhenUserDoesNotHaveRole() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+                "email", "norole@norole.com",
+                "password", "password"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/login", request, String.class);
+
+        //then
+        assertEquals(FORBIDDEN, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Access denied"
+                }
+                """,  response.getBody(), false);
+    }
 }

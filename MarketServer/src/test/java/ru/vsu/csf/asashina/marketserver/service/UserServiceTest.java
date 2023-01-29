@@ -7,18 +7,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.marketserver.exception.PasswordsDoNotMatchException;
+import ru.vsu.csf.asashina.marketserver.exception.WrongCredentialsException;
 import ru.vsu.csf.asashina.marketserver.mapper.UserMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.RoleDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.UserDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Role;
 import ru.vsu.csf.asashina.marketserver.model.entity.User;
 import ru.vsu.csf.asashina.marketserver.model.enums.RoleName;
+import ru.vsu.csf.asashina.marketserver.model.request.LoginRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.UserSignUpRequest;
 import ru.vsu.csf.asashina.marketserver.repository.UserRepository;
 
+import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -114,5 +119,61 @@ class UserServiceTest {
 
         //when, then
         assertThatThrownBy(() -> userService.signUpNewUser(request)).isInstanceOf(PasswordsDoNotMatchException.class);
+    }
+
+    @Test
+    void loginUserSuccess() {
+        //given
+        LoginRequest request = new LoginRequest("hh@com.com", "password");
+
+        User userFromRepository = createValidUser();
+
+        when(userRepository.existsByEmail(request.getEmail())).thenReturn(true);
+        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(userFromRepository));
+        when(roleService.getUserRole()).thenReturn(new RoleDTO(1L, RoleName.USER.getName()));
+
+        //when, then
+        assertDoesNotThrow(() -> userService.loginUser(request));
+    }
+
+    @Test
+    void loginUserThrowsExceptionWhenUserWithFollowingEmailDoesNotExist() {
+        //given
+        LoginRequest request = new LoginRequest("hh1@com.com", "password");
+
+        when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
+
+        //when, then
+        assertThatThrownBy(() -> userService.loginUser(request)).isInstanceOf(WrongCredentialsException.class);
+    }
+
+    @Test
+    void loginUserThrowsExceptionWhenPasswordsDoNotMatch() {
+        //given
+        LoginRequest request = new LoginRequest("hh@com.com", "dumbdumb");
+
+        User userFromRepository = createValidUser();
+
+        when(userRepository.existsByEmail(request.getEmail())).thenReturn(true);
+        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(userFromRepository));
+
+        //when, then
+        assertThatThrownBy(() -> userService.loginUser(request)).isInstanceOf(WrongCredentialsException.class);
+    }
+
+    @Test
+    void loginUserThrowsExceptionWhenUserDoesNotHaveRole() {
+        //given
+        LoginRequest request = new LoginRequest("hh@com.com", "password");
+
+        User userFromRepository = createValidUser();
+        userFromRepository.setRoles(Collections.emptySet());
+
+        when(userRepository.existsByEmail(request.getEmail())).thenReturn(true);
+        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(userFromRepository));
+        when(roleService.getUserRole()).thenReturn(new RoleDTO(1L, RoleName.USER.getName()));
+
+        //when, then
+        assertThatThrownBy(() -> userService.loginUser(request)).isInstanceOf(AccessDeniedException.class);
     }
 }
