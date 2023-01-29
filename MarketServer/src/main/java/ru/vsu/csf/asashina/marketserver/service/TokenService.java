@@ -8,14 +8,22 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.vsu.csf.asashina.marketserver.model.dto.TokensDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.UserDTO;
+import ru.vsu.csf.asashina.marketserver.model.entity.RefreshToken;
+import ru.vsu.csf.asashina.marketserver.repository.RefreshTokenRepository;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +36,16 @@ public class TokenService {
 
     private final UserDetailsService userDetailsService;
 
+    private final RefreshTokenRepository refreshTokenRepository;
+
     @Value("${security.jwt.secret-key}")
     private String secretKey;
+
+    @Value("${security.jwt.access-token.expire-date-ms}")
+    private Integer accessTokenExpireTimeInMs;
+
+    @Value("${security.jwt.refresh-token.expire-date-days}")
+    private Integer refreshTokenExpireTimeInDays;
 
     public void authenticate(String authHeader) {
         DecodedJWT decodedJWT = decodeJWT(authHeader);
@@ -44,10 +60,14 @@ public class TokenService {
         if (authHeader.startsWith(TOKEN_PREFIX)) {
             token = authHeader.substring(TOKEN_PREFIX.length());
         }
-        var algorithm = Algorithm.HMAC256(secretKey.getBytes());
+        var algorithm = getAlgorithm();
         return JWT.require(algorithm)
                 .build()
                 .verify(token);
+    }
+
+    private Algorithm getAlgorithm() {
+        return Algorithm.HMAC256(secretKey.getBytes());
     }
 
     private void checkIfTokenIsExpired(Date tokenExpireDate) {
@@ -63,5 +83,37 @@ public class TokenService {
                 userDetails.getAuthorities()
         );
         SecurityContextHolder.getContext().setAuthentication(authToken);
+    }
+
+    @Transactional
+    public TokensDTO createTokens(UserDTO user) {
+        return new TokensDTO(generateAccessToken(user), generateRefreshToken(user));
+    }
+
+    private String generateAccessToken(UserDTO user) {
+        return JWT.create()
+                .withSubject(user.getUserId().toString())
+                .withExpiresAt(new Date(System.currentTimeMillis() + accessTokenExpireTimeInMs))
+                .withIssuer("market-server")
+                .withClaim("roles", user.getRoles().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .toList()
+                )
+                .withClaim("email", user.getEmail())
+                .withClaim("fullName", user.getName().concat(" ").concat(user.getSurname()))
+                .sign(getAlgorithm());
+    }
+
+    private String generateRefreshToken(UserDTO user) {
+        String refreshToken = UUID.randomUUID().toString();
+        refreshTokenRepository.saveNewRefreshToken(
+                refreshToken,
+                Instant.now().plusSeconds(fromDaysToSeconds(refreshTokenExpireTimeInDays)),
+                user.getUserId());
+        return refreshToken;
+    }
+
+    private int fromDaysToSeconds(int days) {
+        return days * 24 * 60 * 60;
     }
 }

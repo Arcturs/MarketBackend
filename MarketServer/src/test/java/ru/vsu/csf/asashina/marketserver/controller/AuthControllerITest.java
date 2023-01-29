@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import ru.vsu.csf.asashina.marketserver.RequestBuilder;
+import ru.vsu.csf.asashina.marketserver.repository.RefreshTokenRepository;
 import ru.vsu.csf.asashina.marketserver.repository.UserRepository;
 
 import java.util.Map;
@@ -27,7 +28,7 @@ import static org.springframework.http.HttpStatus.*;
 @ExtendWith(MockitoExtension.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Slf4j
-class UserControllerITest {
+class AuthControllerITest {
 
     @Autowired
     private TestRestTemplate testRestTemplate;
@@ -41,14 +42,19 @@ class UserControllerITest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+
     @AfterEach
     void tearDown() {
         userRepository.deleteAll();
         jdbcTemplate.execute("ALTER TABLE user_info ALTER COLUMN user_id RESTART WITH 1");
+
+        refreshTokenRepository.deleteAll();
     }
 
     @Test
-    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void signUpNewUserUsingFormSuccess() {
         //given
         HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
@@ -60,17 +66,19 @@ class UserControllerITest {
         ));
 
         //when
-        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/sign-up", request, String.class);
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/auth/sign-up", request, String.class);
 
         //then
         assertEquals(OK, response.getStatusCode());
 
         assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM user_info WHERE email = 'rickbay@google.com')",
                 Boolean.class), true);
+        assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM refresh_token WHERE user_id = 3)",
+                Boolean.class), true);
     }
 
     @Test
-    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void signUpNewUserUsingFormThrowsExceptionForAlreadyExistingEmail() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
@@ -82,7 +90,7 @@ class UserControllerITest {
         ));
 
         //when
-        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/sign-up", request, String.class);
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/auth/sign-up", request, String.class);
 
         //then
         assertEquals(CONFLICT, response.getStatusCode());
@@ -94,7 +102,7 @@ class UserControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void signUpNewUserUsingFormThrowsExceptionWhenPasswordsDoNotMatch() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
@@ -106,7 +114,7 @@ class UserControllerITest {
         ));
 
         //when
-        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/sign-up", request, String.class);
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/auth/sign-up", request, String.class);
 
         //then
         assertEquals(BAD_REQUEST, response.getStatusCode());
@@ -118,7 +126,7 @@ class UserControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void loginUserSuccess() {
         //given
         HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
@@ -127,14 +135,14 @@ class UserControllerITest {
         ));
 
         //when
-        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/login", request, String.class);
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/auth/login", request, String.class);
 
         //then
         assertEquals(OK, response.getStatusCode());
     }
 
     @Test
-    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void loginUserThrowsExceptionForNonExistingEmail() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
@@ -143,7 +151,7 @@ class UserControllerITest {
         ));
 
         //when
-        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/login", request, String.class);
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/auth/login", request, String.class);
 
         //then
         assertEquals(BAD_REQUEST, response.getStatusCode());
@@ -155,7 +163,7 @@ class UserControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void loginUserThrowsExceptionWhenPasswordDoesNotMatch() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
@@ -164,7 +172,7 @@ class UserControllerITest {
         ));
 
         //when
-        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/login", request, String.class);
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/auth/login", request, String.class);
 
         //then
         assertEquals(BAD_REQUEST, response.getStatusCode());
@@ -176,7 +184,7 @@ class UserControllerITest {
     }
 
     @Test
-    @Sql(scripts = "db/UserControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void loginUserThrowsExceptionWhenUserDoesNotHaveRole() throws JSONException {
         //given
         HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
@@ -185,7 +193,7 @@ class UserControllerITest {
         ));
 
         //when
-        ResponseEntity<String> response = testRestTemplate.postForEntity("/users/login", request, String.class);
+        ResponseEntity<String> response = testRestTemplate.postForEntity("/auth/login", request, String.class);
 
         //then
         assertEquals(FORBIDDEN, response.getStatusCode());

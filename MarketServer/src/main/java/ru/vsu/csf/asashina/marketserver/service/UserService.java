@@ -31,7 +31,7 @@ public class UserService {
     private final RoleService roleService;
 
     @Transactional
-    public void signUpNewUser(UserSignUpRequest request) {
+    public UserDTO signUpNewUser(UserSignUpRequest request) {
         if (isUserWithFollowingEmailExists(request.getEmail())) {
             throw new ObjectAlreadyExistsException("User with following email already exists");
         }
@@ -45,7 +45,8 @@ public class UserService {
         addUserRoleToUser(dto);
         User userWithRole = userMapper.toEntityFromDTO(dto);
 
-        userRepository.save(userWithRole);
+        User savedUser = userRepository.save(userWithRole);
+        return userMapper.toDTOFromEntity(savedUser);
     }
 
     private boolean isUserWithFollowingEmailExists(String email) {
@@ -65,31 +66,7 @@ public class UserService {
         user.setRoles(roles);
     }
 
-    public void loginUser(LoginRequest request) {
-        if (!isUserWithFollowingEmailExists(request.getEmail())) {
-            throw new WrongCredentialsException("Wrong email or password");
-        }
-
-        User user = findUserByEmail(request.getEmail());
-        checkIFPasswordsMatchWhenLogin(request.getPassword(), user.getPasswordHash());
-
-        UserDTO dto = userMapper.toDTOFromEntity(user);
-        checkIfUserHasUserRole(dto);
-    }
-
-    private User findUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(
-                () -> new ObjectNotExistException("User with following email does not exist")
-        );
-    }
-
-    private void checkIFPasswordsMatchWhenLogin(String requestPassword, String hashPassword) {
-        if(!BCrypt.checkpw(requestPassword, hashPassword)) {
-            throw new WrongCredentialsException("Wrong email or password");
-        }
-    }
-
-    private void checkIfUserHasUserRole(UserDTO user) {
+    public void checkIfUserHasUserRole(UserDTO user) {
         if (!user.getRoles().contains(roleService.getUserRole())) {
             throw new AccessDeniedException("Access denied");
         }
@@ -98,5 +75,11 @@ public class UserService {
     public UserDTO getUserByEmail(String email) {
         User user = findUserByEmail(email);
         return userMapper.toDTOFromEntity(user);
+    }
+
+    private User findUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new ObjectNotExistException("User with following email does not exist")
+        );
     }
 }

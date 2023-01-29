@@ -29,6 +29,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,12 +81,18 @@ class UserServiceTest {
                 .build();
 
         RoleDTO roleFromService = new RoleDTO(1L, RoleName.USER.getName());
+        User savedUser = createValidUser();
+        UserDTO expectedUser = createValidUserDTO();
 
         when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
         when(roleService.getUserRole()).thenReturn(roleFromService);
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
-        //when, then
-        assertDoesNotThrow(() -> userService.signUpNewUser(request));
+        //when
+        UserDTO result = userService.signUpNewUser(request);
+
+        //then
+        assertEquals(expectedUser, result);
     }
 
     @Test
@@ -123,59 +130,26 @@ class UserServiceTest {
     }
 
     @Test
-    void loginUserSuccess() {
+    void checkIfUserHasUserRoleSuccess() {
         //given
-        LoginRequest request = new LoginRequest("hh@com.com", "password");
+        UserDTO user = createValidUserDTO();
 
-        User userFromRepository = createValidUser();
-
-        when(userRepository.existsByEmail(request.getEmail())).thenReturn(true);
-        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(userFromRepository));
         when(roleService.getUserRole()).thenReturn(new RoleDTO(1L, RoleName.USER.getName()));
 
         //when, then
-        assertDoesNotThrow(() -> userService.loginUser(request));
+        assertDoesNotThrow(() -> userService.checkIfUserHasUserRole(user));
     }
 
     @Test
-    void loginUserThrowsExceptionWhenUserWithFollowingEmailDoesNotExist() {
+    void checkIfUserHasUserRoleThrowsExceptionWhenHasNot() {
         //given
-        LoginRequest request = new LoginRequest("hh1@com.com", "password");
+        UserDTO user = createValidUserDTO();
+        user.setRoles(Collections.emptySet());
 
-        when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
-
-        //when, then
-        assertThatThrownBy(() -> userService.loginUser(request)).isInstanceOf(WrongCredentialsException.class);
-    }
-
-    @Test
-    void loginUserThrowsExceptionWhenPasswordsDoNotMatch() {
-        //given
-        LoginRequest request = new LoginRequest("hh@com.com", "dumbdumb");
-
-        User userFromRepository = createValidUser();
-
-        when(userRepository.existsByEmail(request.getEmail())).thenReturn(true);
-        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(userFromRepository));
-
-        //when, then
-        assertThatThrownBy(() -> userService.loginUser(request)).isInstanceOf(WrongCredentialsException.class);
-    }
-
-    @Test
-    void loginUserThrowsExceptionWhenUserDoesNotHaveRole() {
-        //given
-        LoginRequest request = new LoginRequest("hh@com.com", "password");
-
-        User userFromRepository = createValidUser();
-        userFromRepository.setRoles(Collections.emptySet());
-
-        when(userRepository.existsByEmail(request.getEmail())).thenReturn(true);
-        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(userFromRepository));
         when(roleService.getUserRole()).thenReturn(new RoleDTO(1L, RoleName.USER.getName()));
 
         //when, then
-        assertThatThrownBy(() -> userService.loginUser(request)).isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> userService.checkIfUserHasUserRole(user)).isInstanceOf(AccessDeniedException.class);
     }
 
     @Test

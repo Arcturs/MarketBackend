@@ -10,26 +10,24 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.vsu.csf.asashina.marketserver.model.ResponseBuilder;
 import ru.vsu.csf.asashina.marketserver.model.request.LoginRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.UserSignUpRequest;
-import ru.vsu.csf.asashina.marketserver.service.UserService;
+import ru.vsu.csf.asashina.marketserver.service.AuthService;
 
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/users")
-public class UserController {
+@RequestMapping("/auth")
+public class AuthController {
 
-    private final UserService userService;
+    private final AuthService authService;
 
     @PostMapping("/sign-up")
     public ResponseEntity<?> signUpNewUserUsingForm(@RequestBody @Valid UserSignUpRequest request) {
-        userService.signUpNewUser(request);
-        return ResponseBuilder.buildWithoutBodyResponse(OK);
+        return ResponseBuilder.build(OK, authService.signUp(request));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody @Valid LoginRequest request) {
-        userService.loginUser(request);
-        return ResponseBuilder.buildWithoutBodyResponse(OK);
+        return ResponseBuilder.build(OK, authService.login(request));
     }
 }

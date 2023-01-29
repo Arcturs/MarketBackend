@@ -31,3 +31,10 @@ spring:
 security:
   jwt:
     secret-key: test
+    access-token:
+
+      #3 minutes
+      expire-date-ms: 180000
+
+    refresh-token:
+      expire-date-days: 30
