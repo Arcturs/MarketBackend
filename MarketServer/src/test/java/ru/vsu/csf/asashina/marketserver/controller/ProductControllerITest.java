@@ -76,7 +76,7 @@ class ProductControllerITest {
                              "size": 5,
                              "totalPages": 1
                          },
-                         "data": [
+                         "products": [
                             {
                                 "productId": 3,
                                 "name": "Name 3",
@@ -134,7 +134,7 @@ class ProductControllerITest {
                              "size": 2,
                              "totalPages": 2
                          },
-                         "data": [
+                         "products": [
                             {
                                 "productId": 2,
                                 "name": "Name 2",
@@ -162,7 +162,7 @@ class ProductControllerITest {
                              "size": 5,
                              "totalPages": 1
                          },
-                         "data": [
+                         "products": [
                             {
                                 "productId": 2,
                                 "name": "Name 2",
@@ -220,7 +220,7 @@ class ProductControllerITest {
                              "size": 5,
                              "totalPages": 1
                          },
-                         "data": [
+                         "products": [
                             {
                                 "productId": 1,
                                 "name": "Name 1",
