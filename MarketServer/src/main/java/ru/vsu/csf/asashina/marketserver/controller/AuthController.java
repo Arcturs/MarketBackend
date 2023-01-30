@@ -27,11 +27,13 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/auth")
 public class AuthController {
 
+    private final static String AUTH_TAG = "Auth";
+
     private final AuthService authService;
     private final TokenService tokenService;
 
     @PostMapping("/sign-up")
-    @Operation(summary = "Signs up new user", tags = "Auth", responses = {
+    @Operation(summary = "Signs up new user", tags = AUTH_TAG, responses = {
             @ApiResponse(responseCode = "200", description = "User was successfully registered and tokens are returned", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = TokensDTO.class))
             }),
@@ -47,11 +49,36 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(tags = AUTH_TAG, responses = {
+            @ApiResponse(responseCode = "200", description = "User was successfully logged in and tokens are returned", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = TokensDTO.class))
+            }),
+            @ApiResponse(responseCode = "400", description = "Wrong credentials", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "401", description = "User does not have needed role", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            })
+    })
     public ResponseEntity<?> loginUser(@RequestBody @Valid LoginRequest request) {
         return ResponseBuilder.build(OK, authService.login(request));
     }
 
     @PostMapping("/refresh-token")
+    @Operation(summary = "Refreshes access token using refresh token", tags = AUTH_TAG, responses = {
+            @ApiResponse(responseCode = "200", description = "Tokens are returned", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = TokensDTO.class))
+            }),
+            @ApiResponse(responseCode = "400", description = "Refresh token is empty", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "401", description = "Refresh token is expired", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "404", description = "Refresh token does not exist", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            })
+    })
     public ResponseEntity<?> refreshToken(@RequestBody @Valid RefreshTokenRequest request) {
         return ResponseBuilder.build(OK, tokenService.refreshAccessToken(request));
     }

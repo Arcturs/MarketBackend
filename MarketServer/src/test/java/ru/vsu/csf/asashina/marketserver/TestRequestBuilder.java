@@ -10,7 +10,7 @@ import java.util.Map;
 
 @Component
 @AllArgsConstructor
-public class RequestBuilder {
+public class TestRequestBuilder {
 
     private final TokenGenerator tokenGenerator;
 

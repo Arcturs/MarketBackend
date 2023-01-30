@@ -15,7 +15,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
-import ru.vsu.csf.asashina.marketserver.RequestBuilder;
+import ru.vsu.csf.asashina.marketserver.TestRequestBuilder;
 import ru.vsu.csf.asashina.marketserver.repository.RefreshTokenRepository;
 import ru.vsu.csf.asashina.marketserver.repository.UserRepository;
 
@@ -37,7 +37,7 @@ class AuthControllerITest {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private RequestBuilder requestBuilder;
+    private TestRequestBuilder testRequestBuilder;
 
     @Autowired
     private UserRepository userRepository;
@@ -57,7 +57,7 @@ class AuthControllerITest {
     @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void signUpNewUserUsingFormSuccess() {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "name", "Rick",
                 "surname", "Bay",
                 "email", "rickbay@google.com",
@@ -81,7 +81,7 @@ class AuthControllerITest {
     @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void signUpNewUserUsingFormThrowsExceptionForAlreadyExistingEmail() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "name", "Rick",
                 "surname", "Bay",
                 "email", "em1@jar.com",
@@ -105,7 +105,7 @@ class AuthControllerITest {
     @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void signUpNewUserUsingFormThrowsExceptionWhenPasswordsDoNotMatch() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "name", "Rick",
                 "surname", "Bay",
                 "email", "rickbay@google.com",
@@ -129,7 +129,7 @@ class AuthControllerITest {
     @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void loginUserSuccess() {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "email", "em1@jar.com",
                 "password", "password"
         ));
@@ -145,7 +145,7 @@ class AuthControllerITest {
     @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void loginUserThrowsExceptionForNonExistingEmail() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "email", "em12@jar.com",
                 "password", "password"
         ));
@@ -166,7 +166,7 @@ class AuthControllerITest {
     @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void loginUserThrowsExceptionWhenPasswordDoesNotMatch() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "email", "em1@jar.com",
                 "password", "dumbpass"
         ));
@@ -187,7 +187,7 @@ class AuthControllerITest {
     @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void loginUserThrowsExceptionWhenUserDoesNotHaveRole() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "email", "norole@norole.com",
                 "password", "password"
         ));
@@ -208,7 +208,7 @@ class AuthControllerITest {
     @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void refreshTokenSuccess() {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "refreshToken", "8e58d2a2-8ba3-4afd-9d8b-d68a15a0dec4"
         ));
         
@@ -224,7 +224,7 @@ class AuthControllerITest {
     @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void refreshTokenThrowsExceptionForNonExistingRefreshToken() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "refreshToken", "8e58d2a5-8ba3-4afd-9d8b-d68a15a0dec4"
         ));
 
@@ -245,7 +245,7 @@ class AuthControllerITest {
     @Sql(scripts = "db/AuthControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void refreshTokenThrowsExceptionForExpiredToken() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "refreshToken", "08d171a8-1895-4340-a88f-1536fd8315b0"
         ));
 
