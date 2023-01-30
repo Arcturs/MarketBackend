@@ -73,14 +73,14 @@ public class ProductService {
 
     @Transactional
     public ProductDTO createProductFromCreateRequest(ProductCreateRequest request) {
-        checkProductNameExistsByName(request.getName());
+        checkIfProductNameExistsByName(request.getName());
         Set<CategoryDTO> categoriesFromRequest = categoryService.getCategoryDTOSetByIds(request.getCategoriesId());
         Product entityFromCreateRequest = productMapper.toEntityFromCreateRequest(request, categoriesFromRequest);
         Product createdProductWithId = productRepository.save(entityFromCreateRequest);
         return productMapper.toDTOFromEntity(createdProductWithId);
     }
 
-    private void checkProductNameExistsByName(String name) {
+    private void checkIfProductNameExistsByName(String name) {
         if (productRepository.existsProductByNameIgnoreCase(name)) {
             throw new ObjectAlreadyExistsException("Product with following name already exists");
         }

@@ -14,7 +14,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
-import ru.vsu.csf.asashina.marketserver.RequestBuilder;
+import ru.vsu.csf.asashina.marketserver.TestRequestBuilder;
 import ru.vsu.csf.asashina.marketserver.repository.CategoryRepository;
 import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
 import ru.vsu.csf.asashina.marketserver.repository.UserRepository;
@@ -38,7 +38,7 @@ class ProductControllerITest {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private RequestBuilder requestBuilder;
+    private TestRequestBuilder testRequestBuilder;
 
     @Autowired
     private ProductRepository productRepository;
@@ -76,7 +76,7 @@ class ProductControllerITest {
                              "size": 5,
                              "totalPages": 1
                          },
-                         "data": [
+                         "products": [
                             {
                                 "productId": 3,
                                 "name": "Name 3",
@@ -134,7 +134,7 @@ class ProductControllerITest {
                              "size": 2,
                              "totalPages": 2
                          },
-                         "data": [
+                         "products": [
                             {
                                 "productId": 2,
                                 "name": "Name 2",
@@ -162,7 +162,7 @@ class ProductControllerITest {
                              "size": 5,
                              "totalPages": 1
                          },
-                         "data": [
+                         "products": [
                             {
                                 "productId": 2,
                                 "name": "Name 2",
@@ -220,7 +220,7 @@ class ProductControllerITest {
                              "size": 5,
                              "totalPages": 1
                          },
-                         "data": [
+                         "products": [
                             {
                                 "productId": 1,
                                 "name": "Name 1",
@@ -351,7 +351,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductSuccess() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
                 "name", "Name 4",
                 "price", "67.67",
                 "amount", "4"
@@ -380,7 +380,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductThrowsExceptionForNotAdminRole() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "name", "Name 4",
                 "price", "67.67",
                 "amount", "4"
@@ -397,7 +397,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductSuccessWithCategory() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
                 "name", "Name 4",
                 "price", "67.67",
                 "amount", "4",
@@ -435,7 +435,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductThrowsExceptionWhenObjectWithRequestedNameAlreadyExists() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
                 "name", "Name 1",
                 "price", "67.67",
                 "amount", "4"
@@ -460,7 +460,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdSuccess() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
                 "amount", "12",
                 "description", "Cool"
         ));
@@ -502,7 +502,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForNotAdminRole() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBody(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
                 "amount", "12",
                 "description", "Cool"
         ));
@@ -519,7 +519,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
                 "amount", "12",
                 "description", "Cool"
         ));
@@ -541,7 +541,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForNotExistingObject() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
                 "amount", "12",
                 "description", "Cool"
         ));
@@ -563,7 +563,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdSuccess() {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1", HttpMethod.DELETE, request,
@@ -580,7 +580,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForNotAdminRole() {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1", HttpMethod.DELETE, request,
@@ -594,7 +594,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/ab", HttpMethod.DELETE, request,
@@ -613,7 +613,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForNotExistingId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/100", HttpMethod.DELETE, request,
@@ -632,7 +632,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductSuccess() {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/1",
@@ -649,7 +649,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductThrowsExceptionForNotAdminRole() {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequest();
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/1",
@@ -663,7 +663,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductThrowsExceptionForInvalidProductId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/ab/remove-category/1",
@@ -682,7 +682,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductThrowsExceptionForInvalidCategoryId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/ab",
@@ -701,7 +701,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductThrowsExceptionForNotExistingProductId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/100/remove-category/1",
@@ -720,7 +720,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductThrowsExceptionForNotExistingCategoryId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = requestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/100",
