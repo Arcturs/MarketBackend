@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +45,7 @@ public class AuthController {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             })
     })
+    @SecurityRequirements
     public ResponseEntity<?> signUpNewUserUsingForm(@RequestBody @Valid UserSignUpRequest request) {
         return ResponseBuilder.build(OK, authService.signUp(request));
     }
@@ -60,6 +62,7 @@ public class AuthController {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             })
     })
+    @SecurityRequirements
     public ResponseEntity<?> loginUser(@RequestBody @Valid LoginRequest request) {
         return ResponseBuilder.build(OK, authService.login(request));
     }
@@ -79,6 +82,7 @@ public class AuthController {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             })
     })
+    @SecurityRequirements
     public ResponseEntity<?> refreshToken(@RequestBody @Valid RefreshTokenRequest request) {
         return ResponseBuilder.build(OK, tokenService.refreshAccessToken(request));
     }

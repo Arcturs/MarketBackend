@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,6 +37,7 @@ public class ProductController {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             })
     })
+    @SecurityRequirements
     public ResponseEntity<?> getAllProductsInPages(@RequestParam(value = "pageNumber", required = false, defaultValue = "1") Integer pageNumber,
                                                    @RequestParam(value = "size", required = false, defaultValue = "5") Integer size,
                                                    @RequestParam(value = "name", required = false, defaultValue = "") String name,
@@ -61,6 +63,7 @@ public class ProductController {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             })
     })
+    @SecurityRequirements
     public ResponseEntity<?> getProductById(@PathVariable("id") Long id) {
         return ResponseBuilder.build(OK, productService.getProductById(id));
     }

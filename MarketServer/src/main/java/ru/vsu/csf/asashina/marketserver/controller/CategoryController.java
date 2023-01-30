@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,6 +38,7 @@ public class CategoryController {
                             array = @ArraySchema(schema = @Schema(implementation = CategoryDTO.class)))
             })
     })
+    @SecurityRequirements
     public ResponseEntity<?> getAllCategoriesInList() {
         return ResponseBuilder.build(OK, categoryService.getAllCategories());
     }
@@ -53,6 +55,7 @@ public class CategoryController {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             })
     })
+    @SecurityRequirements
     public ResponseEntity<?> getAllProductsInCategoryInPagesById(@PathVariable("id") Long id,
                                                           @RequestParam(value = "pageNumber", required = false, defaultValue = "1") Integer pageNumber,
                                                           @RequestParam(value = "size", required = false, defaultValue = "5") Integer size,
