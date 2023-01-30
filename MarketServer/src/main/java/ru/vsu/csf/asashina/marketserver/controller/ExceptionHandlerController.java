@@ -49,6 +49,7 @@ public class ExceptionHandlerController {
 
     @ExceptionHandler({TokenValidationException.class, TokenExpiredException.class})
     public ResponseEntity<?> unauthorizedExceptionHandler(Exception e) {
+        log.error(e.getMessage());
         return ResponseBuilder.build(UNAUTHORIZED, e);
     }
 

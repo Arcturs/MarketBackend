@@ -33,7 +33,7 @@ public class TokenService {
     public final static String TOKEN_PREFIX = "Bearer ";
 
     private final static String EMAIL_CLAIM = "email";
-    private final static String EXPIRATION_CLAIM = "Expiration";
+    private final static String EXPIRATION_CLAIM = "exp";
 
     private final UserDetailsService userDetailsService;
     private final UserService userService;
