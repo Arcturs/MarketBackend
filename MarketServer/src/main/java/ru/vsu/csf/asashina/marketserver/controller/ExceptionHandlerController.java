@@ -9,8 +9,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.vsu.csf.asashina.marketserver.exception.*;
 import ru.vsu.csf.asashina.marketserver.model.ResponseBuilder;
 import ru.vsu.csf.asashina.marketserver.model.dto.ExceptionDTO;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
 
-@ControllerAdvice
+@RestControllerAdvice
 @Slf4j
 public class ExceptionHandlerController {
 

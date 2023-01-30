@@ -33,7 +33,8 @@ public class SecurityConfiguration implements WebMvcConfigurer {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeHttpRequests()
                 .requestMatchers("/auth/*").permitAll()
-                .requestMatchers(GET, "/categories/**", "/products/**").permitAll()
+                .requestMatchers(GET, "/categories/**", "/products/**", "/v3/api-docs/**",
+                        "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                 .requestMatchers(POST, "/categories/**", "/products").hasAnyAuthority(ADMIN_ROLE)
                 .requestMatchers(PUT, "/products/*").hasAnyAuthority(ADMIN_ROLE)
