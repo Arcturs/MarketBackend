@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5435}/${DATABASE_NAME:marketdb}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:dumbpassword}
+
+  liquibase:
+    change-log: classpath:db/changelog/changelog-master.xml
+
+security:
+  jwt:
+    secret-key: ${JWT_SECRET_KEY:E)H@McQfTjWnZr4u7x!z%C*F-JaNdRgU}
+    access-token:
+
+      #3 minutes
+      expire-date-ms: 180000
+
+    refresh-token:
+      expire-date-days: 30
+
+server:
+  shutdown: GRACEFUL
+  forward-headers-strategy: NATIVE
+  servlet:
+    context-path: ${SERVER_PREFIX:/api/v1}

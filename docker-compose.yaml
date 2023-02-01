@@ -1,14 +1,32 @@
 version: '3'
 services:
-  postgres:
+  marketDB:
     image: postgres:15.1-alpine
     restart: always
     ports:
-      - ${DATABASE_PORT}:5432
-    container_name: ${DATABASE_HOST}
+      - ${MARKET_DATABASE_PORT}:5432
+    container_name: marketDB
     environment:
-      - POSTGRES_USER=${DATABASE_USERNAME}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${MARKET_DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${MARKET_DATABASE_PASSWORD}
+      - POSTGRES_DB=${MARKET_DATABASE_NAME}
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - ./marketdb_data:/var/lib/postgresql/data
+
+  market:
+    image: market_backend
+    container_name: market
+    build:
+      context: MarketServer/.
+    ports:
+      - ${MARKET_SERVER_PORT}:8080
+    depends_on:
+      - marketDB
+    environment:
+      - DATABASE_HOST=${MARKET_DATABASE_HOST}
+      - DATABASE_PORT=${MARKET_DATABASE_PORT}
+      - DATABASE_NAME=${MARKET_DATABASE_NAME}
+      - DATABASE_USERNAME=${MARKET_DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${MARKET_DATABASE_PASSWORD}
+      - JWT_SECRET_KEY=${MARKET_SERVER_JWT_SECRET_KEY}
+      - SERVER_PREFIX=${MARKET_SERVER_PREFIX}
