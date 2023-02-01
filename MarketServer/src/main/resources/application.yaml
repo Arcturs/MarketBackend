@@ -17,3 +17,9 @@ security:
 
     refresh-token:
       expire-date-days: 30
+
+server:
+  shutdown: GRACEFUL
+  forward-headers-strategy: NATIVE
+  servlet:
+    context-path: ${SERVER_PREFIX:/api/v1}
