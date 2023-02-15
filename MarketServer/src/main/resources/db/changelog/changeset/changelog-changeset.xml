@@ -28,4 +28,9 @@
         <sqlFile path="changeset/create/create-refresh_token-table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="6-Create-order-table" author="Anastasiya Sashina">
+        <sqlFile path="changeset/create/create-order_info-table.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="changeset/create/create-order_product-table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>
