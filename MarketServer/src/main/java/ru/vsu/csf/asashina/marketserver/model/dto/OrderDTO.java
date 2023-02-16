@@ -1,10 +1,9 @@
 package ru.vsu.csf.asashina.marketserver.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
-import ru.vsu.csf.asashina.marketserver.serializer.PriceJsonSerializer;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Set;
 
@@ -23,7 +22,5 @@ public class OrderDTO {
     private Instant created;
 
     private Set<OrderProductDTO> products;
-
-    @JsonSerialize(using = PriceJsonSerializer.class)
-    private Double finalPrice;
+    private BigDecimal finalPrice;
 }

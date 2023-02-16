@@ -18,6 +18,7 @@ import ru.vsu.csf.asashina.marketserver.model.enums.RoleName;
 import ru.vsu.csf.asashina.marketserver.repository.OrderRepository;
 import ru.vsu.csf.asashina.marketserver.util.PageUtils;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -79,7 +80,7 @@ class OrderServiceTest {
                                            .productId(1L)
                                            .name("pr1")
                                            .amount(100)
-                                           .price(10.98F)
+                                           .price(new BigDecimal("10.98"))
                                            .description("prpr")
                                            .categories(Collections.emptySet())
                                            .build()
@@ -97,7 +98,7 @@ class OrderServiceTest {
                                                 .productId(1L)
                                                 .name("pr1")
                                                 .amount(100)
-                                                .price(10.98F)
+                                                .price(new BigDecimal("10.98"))
                                                 .description("prpr")
                                                 .categories(Collections.emptySet())
                                                 .build()
@@ -115,7 +116,7 @@ class OrderServiceTest {
                                                 .productId(2L)
                                                 .name("pr2")
                                                 .amount(30)
-                                                .price(11.98F)
+                                                .price(new BigDecimal("11.98"))
                                                 .description("prpr")
                                                 .categories(Collections.emptySet())
                                                 .build()
@@ -132,48 +133,48 @@ class OrderServiceTest {
                         .isPaid(false)
                         .created(Instant.parse("2022-02-16T18:35:24.00Z"))
                         .products(Set.of(
-                                new OrderProductDTO(10, 100.98F,
+                                new OrderProductDTO(10, new BigDecimal("109.80"),
                                         ProductDTO.builder()
                                                 .productId(1L)
                                                 .name("pr1")
-                                                .price(10.98F)
+                                                .price(new BigDecimal("10.98"))
                                                 .categories(Collections.emptySet())
                                                 .build()
                                 )
                         ))
-                        .finalPrice(100.98D)
+                        .finalPrice(new BigDecimal("109.80"))
                         .build(),
                 OrderDTO.builder()
                         .orderNumber("num2")
                         .isPaid(false)
                         .created(Instant.parse("2022-01-16T18:35:24.00Z"))
                         .products(Set.of(
-                                new OrderProductDTO(3, 30.98F,
+                                new OrderProductDTO(3, new BigDecimal("32.94"),
                                         ProductDTO.builder()
                                                 .productId(1L)
                                                 .name("pr1")
-                                                .price(10.98F)
+                                                .price(new BigDecimal("10.98"))
                                                 .categories(Collections.emptySet())
                                                 .build()
                                 )
                         ))
-                        .finalPrice(30.98D)
+                        .finalPrice(new BigDecimal("32.94"))
                         .build(),
                 OrderDTO.builder()
                         .orderNumber("num3")
                         .isPaid(false)
                         .created(Instant.parse("2022-02-10T10:35:24.00Z"))
                         .products(Set.of(
-                                new OrderProductDTO(3, 33.98F,
+                                new OrderProductDTO(3, new BigDecimal("35.94"),
                                         ProductDTO.builder()
                                                 .productId(2L)
                                                 .name("pr2")
-                                                .price(11.98F)
+                                                .price(new BigDecimal("11.98"))
                                                 .categories(Collections.emptySet())
                                                 .build()
                                 )
                         ))
-                        .finalPrice(33.98D)
+                        .finalPrice(new BigDecimal("35.94"))
                         .build()
         ));
     }

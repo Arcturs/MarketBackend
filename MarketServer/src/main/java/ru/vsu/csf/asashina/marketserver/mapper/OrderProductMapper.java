@@ -6,11 +6,14 @@ import org.mapstruct.factory.Mappers;
 import ru.vsu.csf.asashina.marketserver.model.dto.OrderProductDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.OrderProduct;
 
-@Mapper(uses = ProductMapper.class)
+import java.math.BigDecimal;
+
+@Mapper(uses = ProductMapper.class, imports = BigDecimal.class)
 public interface OrderProductMapper {
 
     OrderProductMapper INSTANCE = Mappers.getMapper(OrderProductMapper.class);
 
-    @Mapping(target = "overallPrice", expression = "java(entity.getAmount() * entity.getProduct().getPrice())")
+    @Mapping(target = "overallPrice",
+            expression = "java(entity.getProduct().getPrice().multiply(BigDecimal.valueOf(entity.getAmount())))")
     OrderProductDTO toDTOFromEntity(OrderProduct entity);
 }

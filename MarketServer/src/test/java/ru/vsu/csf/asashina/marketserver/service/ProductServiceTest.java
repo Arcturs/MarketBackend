@@ -24,6 +24,7 @@ import ru.vsu.csf.asashina.marketserver.model.request.ProductsListToAttachToCate
 import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
 import ru.vsu.csf.asashina.marketserver.util.PageUtils;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -58,19 +59,19 @@ class ProductServiceTest {
                 Product.builder()
                         .productId(1L)
                         .name("Name 1")
-                        .price(100.0F)
+                        .price(new BigDecimal("100.00"))
                         .amount(10)
                         .build(),
                 Product.builder()
                         .productId(2L)
                         .name("Name 2")
-                        .price(100.0F)
+                        .price(new BigDecimal("100.00"))
                         .amount(11)
                         .build(),
                 Product.builder()
                         .productId(3L)
                         .name("Name 3")
-                        .price(120.6F)
+                        .price(new BigDecimal("120.60"))
                         .amount(10)
                         .build()
         ));
@@ -81,7 +82,7 @@ class ProductServiceTest {
                 Product.builder()
                         .productId(1L)
                         .name("Name 1")
-                        .price(100.0F)
+                        .price(new BigDecimal("100.00"))
                         .amount(10)
                         .categories(Set.of(new Category(1L, "Name 1")))
                         .build()
@@ -93,19 +94,19 @@ class ProductServiceTest {
                 ProductDetailedDTO.builder()
                         .productId(1L)
                         .name("Name 1")
-                        .price(100.0F)
+                        .price(new BigDecimal("100.00"))
                         .amount(10)
                         .build(),
                 ProductDetailedDTO.builder()
                         .productId(2L)
                         .name("Name 2")
-                        .price(100.0F)
+                        .price(new BigDecimal("100.00"))
                         .amount(11)
                         .build(),
                 ProductDetailedDTO.builder()
                         .productId(3L)
                         .name("Name 3")
-                        .price(120.6F)
+                        .price(new BigDecimal("120.60"))
                         .amount(10)
                         .build()
         ));
@@ -116,7 +117,7 @@ class ProductServiceTest {
                 ProductDetailedDTO.builder()
                         .productId(1L)
                         .name("Name 1")
-                        .price(100.0F)
+                        .price(new BigDecimal("100.00"))
                         .amount(10)
                         .categories(Set.of(new CategoryDTO(1L, "Name 1")))
                         .build()
@@ -127,7 +128,7 @@ class ProductServiceTest {
         return Product.builder()
                 .productId(1L)
                 .name("Name 1")
-                .price(100.0F)
+                .price(new BigDecimal("100.00"))
                 .amount(10)
                 .build();
     }
@@ -136,7 +137,7 @@ class ProductServiceTest {
         return ProductDetailedDTO.builder()
                 .productId(1L)
                 .name("Name 1")
-                .price(100.0F)
+                .price(new BigDecimal("100.00"))
                 .amount(10)
                 .build();
     }
@@ -144,7 +145,7 @@ class ProductServiceTest {
     private ProductCreateRequest createValidProductCreateRequest() {
         return ProductCreateRequest.builder()
                 .name("Name 1")
-                .price(100.0F)
+                .price(new BigDecimal("100.00"))
                 .amount(10)
                 .build();
     }
@@ -278,7 +279,7 @@ class ProductServiceTest {
         Product withoutIdProduct = Product.builder()
                 .productId(null)
                 .name("Name 1")
-                .price(100.0F)
+                .price(new BigDecimal("100.00"))
                 .amount(10)
                 .build();
         Product productFromRepository = createValidProduct();
@@ -306,7 +307,7 @@ class ProductServiceTest {
         Product withoutIdProduct = Product.builder()
                 .productId(null)
                 .name("Name 1")
-                .price(100.0F)
+                .price(new BigDecimal("100.00"))
                 .amount(10)
                 .categories(entitiesCategory)
                 .build();
@@ -350,14 +351,14 @@ class ProductServiceTest {
                 .productId(1L)
                 .name("Name 1")
                 .description("Cool")
-                .price(100.0F)
+                .price(new BigDecimal("100.00"))
                 .amount(12)
                 .build();
         ProductDetailedDTO expectedProduct = ProductDetailedDTO.builder()
                 .productId(1L)
                 .name("Name 1")
                 .description("Cool")
-                .price(100.0F)
+                .price(new BigDecimal("100.00"))
                 .amount(12)
                 .build();
 
@@ -417,15 +418,8 @@ class ProductServiceTest {
         List<Product> foundProductListFromRepository = List.of(Product.builder()
                 .productId(2L)
                 .name("Name 2")
-                .price(100.0F)
+                .price(new BigDecimal("100.00"))
                 .amount(11)
-                .build());
-        List<Product> productsEntitiesWithAddedCategory = List.of(Product.builder()
-                .productId(2L)
-                .name("Name 2")
-                .price(100.0F)
-                .amount(11)
-                .categories(Set.of(new Category(1L, "Name 1")))
                 .build());
 
         when(productRepository.findAllByProductIdIn(request.getProductsId())).thenReturn(foundProductListFromRepository);

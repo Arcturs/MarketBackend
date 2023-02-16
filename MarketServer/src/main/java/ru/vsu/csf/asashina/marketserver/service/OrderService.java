@@ -12,6 +12,7 @@ import ru.vsu.csf.asashina.marketserver.model.entity.Order;
 import ru.vsu.csf.asashina.marketserver.repository.OrderRepository;
 import ru.vsu.csf.asashina.marketserver.util.PageUtils;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 @Service
@@ -37,10 +38,9 @@ public class OrderService {
         return dtoPages;
     }
 
-    private Double calculateFinalPrice(Set<OrderProductDTO> products) {
+    private BigDecimal calculateFinalPrice(Set<OrderProductDTO> products) {
         return products.stream()
                 .map(OrderProductDTO::getOverallPrice)
-                .mapToDouble(Float::floatValue)
-                .sum();
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
