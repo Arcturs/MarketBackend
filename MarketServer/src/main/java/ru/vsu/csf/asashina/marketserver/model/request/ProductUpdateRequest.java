@@ -12,7 +12,7 @@ public class ProductUpdateRequest {
 
     private String description;
 
-    @PositiveOrZero
+    @Digits(integer = 9, fraction = 2)
     private Float price;
 
     @Positive

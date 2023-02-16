@@ -1,6 +1,6 @@
 INSERT INTO product(name, price, amount)
-VALUES ('Name 1', 100.0, 10),
-       ('Name 2', 56.6, 3);
+VALUES ('Name 1', 100.00, 10),
+       ('Name 2', 56.60, 3);
 
 INSERT INTO category(name)
 VALUES ('N'),
