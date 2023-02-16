@@ -3,20 +3,19 @@ package ru.vsu.csf.asashina.marketserver.service;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.mapper.ProductMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.CategoryDTO;
-import ru.vsu.csf.asashina.marketserver.model.dto.ProductDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.ProductDetailedDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Product;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductsListToAttachToCategoryRequest;
 import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
-import ru.vsu.csf.asashina.marketserver.validator.PageValidator;
+import ru.vsu.csf.asashina.marketserver.util.PageUtils;
 
 import java.util.HashSet;
 import java.util.List;
@@ -32,37 +31,32 @@ public class ProductService {
 
     private final ProductMapper productMapper;
 
-    private final PageValidator pageValidator;
+    private final PageUtils pageUtils;
 
     private final CategoryService categoryService;
 
-    public Page<ProductDTO> getAllProductsInPagesByName(Integer pageNumber, Integer size, String name, Boolean isAsc) {
-        PageRequest pageRequest = buildPageRequest(pageNumber, size, isAsc);
+    public Page<ProductDetailedDTO> getAllProductsInPagesByName(Integer pageNumber, Integer size, String name, Boolean isAsc) {
+        PageRequest pageRequest = pageUtils.createPageRequest(pageNumber, size, isAsc, PAGE_SORT_BY_PRICE);
         Page<Product> pages = productRepository.getProductInPagesAndSearchByName(name, pageRequest);
 
-        pageValidator.checkPageOutOfRange(pages, pageNumber);
+        pageUtils.checkPageOutOfRange(pages, pageNumber);
 
-        return pages.map(productMapper::toDTOFromEntity);
+        return pages.map(productMapper::toDetailedDTOFromEntity);
     }
 
-    private PageRequest buildPageRequest(Integer pageNumber, Integer size, Boolean isAsc) {
-        return PageRequest.of(pageNumber - 1, size,
-                isAsc ? Sort.by(PAGE_SORT_BY_PRICE).ascending() : Sort.by(PAGE_SORT_BY_PRICE).descending());
-    }
-
-    public Page<ProductDTO> getAllProductsInPagesByNameWithCategoryId(Long categoryId, Integer pageNumber, Integer size, String name, Boolean isAsc) {
-        PageRequest pageRequest = buildPageRequest(pageNumber, size, isAsc);
+    public Page<ProductDetailedDTO> getAllProductsInPagesByNameWithCategoryId(Long categoryId, Integer pageNumber, Integer size, String name, Boolean isAsc) {
+        PageRequest pageRequest = pageUtils.createPageRequest(pageNumber, size, isAsc, PAGE_SORT_BY_PRICE);
         Page<Product> pages = productRepository.getProductInPagesAndSearchByNameWithCategory(name, categoryId,
                 pageRequest);
 
-        pageValidator.checkPageOutOfRange(pages, pageNumber);
+        pageUtils.checkPageOutOfRange(pages, pageNumber);
 
-        return pages.map(productMapper::toDTOFromEntity);
+        return pages.map(productMapper::toDetailedDTOFromEntity);
     }
 
-    public ProductDTO getProductById(Long id) {
+    public ProductDetailedDTO getProductById(Long id) {
         Product product = findProductById(id);
-        return productMapper.toDTOFromEntity(product);
+        return productMapper.toDetailedDTOFromEntity(product);
     }
 
     private Product findProductById(Long id) {
@@ -72,12 +66,12 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDTO createProductFromCreateRequest(ProductCreateRequest request) {
+    public ProductDetailedDTO createProductFromCreateRequest(ProductCreateRequest request) {
         checkIfProductNameExistsByName(request.getName());
         Set<CategoryDTO> categoriesFromRequest = categoryService.getCategoryDTOSetByIds(request.getCategoriesId());
         Product entityFromCreateRequest = productMapper.toEntityFromCreateRequest(request, categoriesFromRequest);
         Product createdProductWithId = productRepository.save(entityFromCreateRequest);
-        return productMapper.toDTOFromEntity(createdProductWithId);
+        return productMapper.toDetailedDTOFromEntity(createdProductWithId);
     }
 
     private void checkIfProductNameExistsByName(String name) {
@@ -87,11 +81,11 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDTO updateProductFromUpdateRequest(Long id, ProductUpdateRequest request) {
+    public ProductDetailedDTO updateProductFromUpdateRequest(Long id, ProductUpdateRequest request) {
         Product beforeUpdateEntity = findProductById(id);
         productMapper.updateEntityFromUpdateRequest(request, beforeUpdateEntity);
         Product afterUpdateEntity = productRepository.save(beforeUpdateEntity);
-        return productMapper.toDTOFromEntity(afterUpdateEntity);
+        return productMapper.toDetailedDTOFromEntity(afterUpdateEntity);
     }
 
     @Transactional
@@ -107,19 +101,19 @@ public class ProductService {
             throw new ObjectNotExistException("Products with following ids do not exist");
         }
 
-        List<ProductDTO> productDTOS = products.stream()
-                .map(productMapper::toDTOFromEntity)
+        List<ProductDetailedDTO> productDetailedDTOS = products.stream()
+                .map(productMapper::toDetailedDTOFromEntity)
                 .toList();
-        addCategoryToProducts(productDTOS, category);
+        addCategoryToProducts(productDetailedDTOS, category);
         
-        List<Product> productsEntitiesWithAddedCategory = productDTOS.stream()
-                .map(productMapper::toEntityFromDTO)
+        List<Product> productsEntitiesWithAddedCategory = productDetailedDTOS.stream()
+                .map(productMapper::toEntityFromDetailedDTO)
                 .toList();
         productRepository.saveAll(productsEntitiesWithAddedCategory);
     }
 
-    private void addCategoryToProducts(List<ProductDTO> products, CategoryDTO category) {
-        for (ProductDTO product : products) {
+    private void addCategoryToProducts(List<ProductDetailedDTO> products, CategoryDTO category) {
+        for (ProductDetailedDTO product : products) {
             Set<CategoryDTO> categories = product.getCategories();
             if (categories == null) {
                 categories = new HashSet<>();

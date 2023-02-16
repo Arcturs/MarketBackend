@@ -7,7 +7,7 @@ import ru.vsu.csf.asashina.marketserver.model.dto.UserDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.User;
 import ru.vsu.csf.asashina.marketserver.model.request.UserSignUpRequest;
 
-@Mapper
+@Mapper(uses = RoleMapper.class)
 public interface UserMapper {
 
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
@@ -16,7 +16,6 @@ public interface UserMapper {
 
     User toEntityFromSignUpRequest(UserSignUpRequest request, String passwordHash);
 
-    @Mapping(target = "roles", expression = "java(roleMapper.toDTOFromEntitySet(entity.getRoles()))")
     UserDTO toDTOFromEntity(User entity);
 
     @Mapping(target = "roles", expression = "java(roleMapper.toEntityFromDTOSet(dto.getRoles()))")

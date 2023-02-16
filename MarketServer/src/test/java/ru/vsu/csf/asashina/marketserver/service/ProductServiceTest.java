@@ -15,14 +15,14 @@ import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.exception.PageException;
 import ru.vsu.csf.asashina.marketserver.mapper.ProductMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.CategoryDTO;
-import ru.vsu.csf.asashina.marketserver.model.dto.ProductDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.ProductDetailedDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Category;
 import ru.vsu.csf.asashina.marketserver.model.entity.Product;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductsListToAttachToCategoryRequest;
 import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
-import ru.vsu.csf.asashina.marketserver.validator.PageValidator;
+import ru.vsu.csf.asashina.marketserver.util.PageUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +51,7 @@ class ProductServiceTest {
     private ProductMapper productMapper = Mappers.getMapper(ProductMapper.class);
 
     @Spy
-    private PageValidator pageValidator;
+    private PageUtils pageUtils;
 
     private Page<Product> createValidPages() {
         return new PageImpl<>(List.of(
@@ -88,21 +88,21 @@ class ProductServiceTest {
         ));
     }
 
-    private Page<ProductDTO> createValidPagesDTO() {
+    private Page<ProductDetailedDTO> createValidPagesDTO() {
         return new PageImpl<>(List.of(
-                ProductDTO.builder()
+                ProductDetailedDTO.builder()
                         .productId(1L)
                         .name("Name 1")
                         .price(100.0F)
                         .amount(10)
                         .build(),
-                ProductDTO.builder()
+                ProductDetailedDTO.builder()
                         .productId(2L)
                         .name("Name 2")
                         .price(100.0F)
                         .amount(11)
                         .build(),
-                ProductDTO.builder()
+                ProductDetailedDTO.builder()
                         .productId(3L)
                         .name("Name 3")
                         .price(120.6F)
@@ -111,9 +111,9 @@ class ProductServiceTest {
         ));
     }
 
-    private Page<ProductDTO> createValidPagesDTOWithCategory() {
+    private Page<ProductDetailedDTO> createValidPagesDTOWithCategory() {
         return new PageImpl<>(List.of(
-                ProductDTO.builder()
+                ProductDetailedDTO.builder()
                         .productId(1L)
                         .name("Name 1")
                         .price(100.0F)
@@ -132,8 +132,8 @@ class ProductServiceTest {
                 .build();
     }
 
-    private ProductDTO createValidProductDTO() {
-        return ProductDTO.builder()
+    private ProductDetailedDTO createValidProductDTO() {
+        return ProductDetailedDTO.builder()
                 .productId(1L)
                 .name("Name 1")
                 .price(100.0F)
@@ -173,13 +173,13 @@ class ProductServiceTest {
         boolean isAsc = true;
 
         Page<Product> pagesFromRepository = createValidPages();
-        Page<ProductDTO> expectedPages = createValidPagesDTO();
+        Page<ProductDetailedDTO> expectedPages = createValidPagesDTO();
 
         when(productRepository.getProductInPagesAndSearchByName(eq(name), any(Pageable.class)))
                 .thenReturn(pagesFromRepository);
 
         //when
-        Page<ProductDTO> result = productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc);
+        Page<ProductDetailedDTO> result = productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc);
 
         //then
         assertEquals(expectedPages, result);
@@ -193,10 +193,8 @@ class ProductServiceTest {
         String name = "";
         boolean isAsc = false;
 
-        Page<Product> pagesFromRepository = createValidPages();
-
         when(productRepository.getProductInPagesAndSearchByName(eq(name), any(Pageable.class)))
-                .thenReturn(pagesFromRepository);
+                .thenReturn(Page.empty());
 
         //when, then
         assertThatThrownBy(() -> productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc))
@@ -213,13 +211,13 @@ class ProductServiceTest {
         boolean isAsc = true;
 
         Page<Product> pagesFromRepository = createValidPagesWithCategory();
-        Page<ProductDTO> expectedPages = createValidPagesDTOWithCategory();
+        Page<ProductDetailedDTO> expectedPages = createValidPagesDTOWithCategory();
 
         when(productRepository.getProductInPagesAndSearchByNameWithCategory(eq(name), eq(categoryId),
                 any(Pageable.class))).thenReturn(pagesFromRepository);
 
         //when
-        Page<ProductDTO> result = productService.getAllProductsInPagesByNameWithCategoryId(categoryId, pageNumber, size,
+        Page<ProductDetailedDTO> result = productService.getAllProductsInPagesByNameWithCategoryId(categoryId, pageNumber, size,
                 name, isAsc);
 
         //then
@@ -235,10 +233,8 @@ class ProductServiceTest {
         String name = "";
         boolean isAsc = false;
 
-        Page<Product> pagesFromRepository = createValidPagesWithCategory();
-
         when(productRepository.getProductInPagesAndSearchByNameWithCategory(eq(name), eq(categoryId),
-                any(Pageable.class))).thenReturn(pagesFromRepository);
+                any(Pageable.class))).thenReturn(Page.empty());
 
         //when, then
         assertThatThrownBy(() -> productService.getAllProductsInPagesByNameWithCategoryId(categoryId, pageNumber, size,
@@ -251,12 +247,12 @@ class ProductServiceTest {
         long id = 1L;
 
         Product productFromRepository = createValidProduct();
-        ProductDTO expectedProduct = createValidProductDTO();
+        ProductDetailedDTO expectedProduct = createValidProductDTO();
 
         when(productRepository.findById(id)).thenReturn(Optional.of(productFromRepository));
 
         //when
-        ProductDTO result = productService.getProductById(id);
+        ProductDetailedDTO result = productService.getProductById(id);
 
         //then
         assertEquals(expectedProduct, result);
@@ -286,14 +282,14 @@ class ProductServiceTest {
                 .amount(10)
                 .build();
         Product productFromRepository = createValidProduct();
-        ProductDTO expectedProduct = createValidProductDTO();
+        ProductDetailedDTO expectedProduct = createValidProductDTO();
 
         when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
         when(categoryService.getCategoryDTOSetByIds(null)).thenReturn(null);
         when(productRepository.save(withoutIdProduct)).thenReturn(productFromRepository);
 
         //when
-        ProductDTO result = productService.createProductFromCreateRequest(request);
+        ProductDetailedDTO result = productService.createProductFromCreateRequest(request);
 
         //then
         assertEquals(expectedProduct, result);
@@ -316,7 +312,7 @@ class ProductServiceTest {
                 .build();
         Product productFromRepository = createValidProduct();
         productFromRepository.setCategories(entitiesCategory);
-        ProductDTO expectedProduct = createValidProductDTO();
+        ProductDetailedDTO expectedProduct = createValidProductDTO();
         expectedProduct.setCategories(createValidCategoryDTOSet());
 
         when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
@@ -325,7 +321,7 @@ class ProductServiceTest {
         when(productRepository.save(withoutIdProduct)).thenReturn(productFromRepository);
 
         //when
-        ProductDTO result = productService.createProductFromCreateRequest(request);
+        ProductDetailedDTO result = productService.createProductFromCreateRequest(request);
 
         //then
         assertEquals(expectedProduct, result);
@@ -357,7 +353,7 @@ class ProductServiceTest {
                 .price(100.0F)
                 .amount(12)
                 .build();
-        ProductDTO expectedProduct = ProductDTO.builder()
+        ProductDetailedDTO expectedProduct = ProductDetailedDTO.builder()
                 .productId(1L)
                 .name("Name 1")
                 .description("Cool")
@@ -369,7 +365,7 @@ class ProductServiceTest {
         when(productRepository.save(afterUpdateEntity)).thenReturn(afterUpdateEntity);
 
         //when
-        ProductDTO result = productService.updateProductFromUpdateRequest(id, request);
+        ProductDetailedDTO result = productService.updateProductFromUpdateRequest(id, request);
 
         //then
         assertEquals(expectedProduct, result);

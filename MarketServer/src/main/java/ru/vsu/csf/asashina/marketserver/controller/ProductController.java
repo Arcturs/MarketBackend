@@ -1,7 +1,6 @@
 package ru.vsu.csf.asashina.marketserver.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -42,11 +41,11 @@ public class ProductController {
                                                    @RequestParam(value = "size", required = false, defaultValue = "5") Integer size,
                                                    @RequestParam(value = "name", required = false, defaultValue = "") String name,
                                                    @RequestParam(value = "isAsc", required = false, defaultValue = "true") Boolean isAsc) {
-        Page<ProductDTO> productPages = productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc);
+        Page<ProductDetailedDTO> productPages = productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc);
         return ResponseBuilder.build(OK, buildProductsInPagesResponse(productPages, pageNumber, size));
     }
 
-    private ProductsInPagesDTO buildProductsInPagesResponse(Page<ProductDTO> products, Integer pageNumber, Integer size) {
+    private ProductsInPagesDTO buildProductsInPagesResponse(Page<ProductDetailedDTO> products, Integer pageNumber, Integer size) {
         return new ProductsInPagesDTO(products.getContent(),
                 new PagingInfoDTO(pageNumber, size, products.getTotalPages()));
     }
@@ -54,7 +53,7 @@ public class ProductController {
     @GetMapping("/{id}")
     @Operation(summary = "Gets product's details", tags = PRODUCT_TAG, responses = {
             @ApiResponse(responseCode = "200", description = "Returns product", content = {
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDTO.class))
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailedDTO.class))
             }),
             @ApiResponse(responseCode = "400", description = "Invalid product's id", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
@@ -71,7 +70,7 @@ public class ProductController {
     @PostMapping("")
     @Operation(summary = "Creates new product", tags = PRODUCT_TAG, responses = {
             @ApiResponse(responseCode = "201", description = "Returns new product", content = {
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDTO.class))
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailedDTO.class))
             }),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
@@ -87,7 +86,7 @@ public class ProductController {
     @PutMapping("/{id}")
     @Operation(summary = "Updates product's details", tags = PRODUCT_TAG, responses = {
             @ApiResponse(responseCode = "200", description = "Returns updated product", content = {
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDTO.class))
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailedDTO.class))
             }),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))

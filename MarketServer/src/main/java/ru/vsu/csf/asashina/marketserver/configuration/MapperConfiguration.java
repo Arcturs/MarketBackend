@@ -2,10 +2,7 @@ package ru.vsu.csf.asashina.marketserver.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.vsu.csf.asashina.marketserver.mapper.CategoryMapper;
-import ru.vsu.csf.asashina.marketserver.mapper.ProductMapper;
-import ru.vsu.csf.asashina.marketserver.mapper.RoleMapper;
-import ru.vsu.csf.asashina.marketserver.mapper.UserMapper;
+import ru.vsu.csf.asashina.marketserver.mapper.*;
 
 @Configuration
 public class MapperConfiguration {
@@ -28,5 +25,15 @@ public class MapperConfiguration {
     @Bean
     public RoleMapper roleMapper() {
         return RoleMapper.INSTANCE;
+    }
+
+    @Bean
+    public OrderMapper orderMapper() {
+        return OrderMapper.INSTANCE;
+    }
+
+    @Bean
+    public OrderProductMapper orderProductMapper() {
+        return OrderProductMapper.INSTANCE;
     }
 }

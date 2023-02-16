@@ -1,7 +1,6 @@
 package ru.vsu.csf.asashina.marketserver.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -62,12 +61,12 @@ public class CategoryController {
                                                           @RequestParam(value = "name", required = false, defaultValue = "") String name,
                                                           @RequestParam(value = "isAsc", required = false, defaultValue = "true") Boolean isAsc) {
         CategoryDTO category = categoryService.getCategoryById(id);
-        Page<ProductDTO> products =
+        Page<ProductDetailedDTO> products =
                 productService.getAllProductsInPagesByNameWithCategoryId(id, pageNumber, size, name, isAsc);
         return ResponseBuilder.build(OK, buildCategoryWithProductsResponse(category, products, pageNumber, size));
     }
 
-    private CategoryWithProductsDTO buildCategoryWithProductsResponse(CategoryDTO category, Page<ProductDTO> products,
+    private CategoryWithProductsDTO buildCategoryWithProductsResponse(CategoryDTO category, Page<ProductDetailedDTO> products,
                                                                       int pageNumber, int size) {
         return CategoryWithProductsDTO.builder()
                 .category(category)

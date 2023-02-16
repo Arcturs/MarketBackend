@@ -12,13 +12,16 @@ import java.util.Set;
 @Setter
 @Builder
 @EqualsAndHashCode
-public class ProductDTO {
+public class ProductDetailedDTO {
 
     private Long productId;
     private String name;
+    private String description;
 
     @JsonSerialize(using = PriceJsonSerializer.class)
     private Float price;
+
+    private Integer amount;
 
     private Set<CategoryDTO> categories;
 }

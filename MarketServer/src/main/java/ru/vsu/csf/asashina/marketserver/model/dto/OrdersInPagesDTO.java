@@ -11,8 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-public class ProductsInPagesDTO {
+public class OrdersInPagesDTO {
 
-    private List<ProductDetailedDTO> products;
+    private List<OrderDTO> orders;
     private PagingInfoDTO paging;
 }
