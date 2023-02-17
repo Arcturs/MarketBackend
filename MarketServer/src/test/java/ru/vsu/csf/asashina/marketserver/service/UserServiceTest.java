@@ -8,18 +8,15 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.exception.PasswordsDoNotMatchException;
-import ru.vsu.csf.asashina.marketserver.exception.WrongCredentialsException;
 import ru.vsu.csf.asashina.marketserver.mapper.UserMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.RoleDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.UserDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Role;
 import ru.vsu.csf.asashina.marketserver.model.entity.User;
-import ru.vsu.csf.asashina.marketserver.model.enums.RoleName;
-import ru.vsu.csf.asashina.marketserver.model.request.LoginRequest;
+import ru.vsu.csf.asashina.marketserver.model.constant.RoleName;
 import ru.vsu.csf.asashina.marketserver.model.request.UserSignUpRequest;
 import ru.vsu.csf.asashina.marketserver.repository.UserRepository;
 
@@ -31,6 +28,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.USER;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -54,7 +52,7 @@ class UserServiceTest {
                 .surname("Sur")
                 .email("hh@com.com")
                 .passwordHash("$2a$10$1pCaZ.GgVDGNG9aMsoIE/eLFOxf5mCpUFTnbhhBW0S7VPfyYKWbUG")
-                .roles(Set.of(new Role(1L, RoleName.USER.getName())))
+                .roles(Set.of(new Role(1L, USER)))
                 .build();
     }
 
@@ -65,7 +63,7 @@ class UserServiceTest {
                 .surname("Sur")
                 .email("hh@com.com")
                 .passwordHash("$2a$10$1pCaZ.GgVDGNG9aMsoIE/eLFOxf5mCpUFTnbhhBW0S7VPfyYKWbUG")
-                .roles(Set.of(new RoleDTO(1L, RoleName.USER.getName())))
+                .roles(Set.of(new RoleDTO(1L, USER)))
                 .build();
     }
 
@@ -80,7 +78,7 @@ class UserServiceTest {
                 .repeatPassword("password")
                 .build();
 
-        RoleDTO roleFromService = new RoleDTO(1L, RoleName.USER.getName());
+        RoleDTO roleFromService = new RoleDTO(1L, USER);
         User savedUser = createValidUser();
         UserDTO expectedUser = createValidUserDTO();
 
@@ -134,7 +132,7 @@ class UserServiceTest {
         //given
         UserDTO user = createValidUserDTO();
 
-        when(roleService.getUserRole()).thenReturn(new RoleDTO(1L, RoleName.USER.getName()));
+        when(roleService.getUserRole()).thenReturn(new RoleDTO(1L, USER));
 
         //when, then
         assertDoesNotThrow(() -> userService.checkIfUserHasUserRole(user));
@@ -146,7 +144,7 @@ class UserServiceTest {
         UserDTO user = createValidUserDTO();
         user.setRoles(Collections.emptySet());
 
-        when(roleService.getUserRole()).thenReturn(new RoleDTO(1L, RoleName.USER.getName()));
+        when(roleService.getUserRole()).thenReturn(new RoleDTO(1L, USER));
 
         //when, then
         assertThatThrownBy(() -> userService.checkIfUserHasUserRole(user)).isInstanceOf(AccessDeniedException.class);

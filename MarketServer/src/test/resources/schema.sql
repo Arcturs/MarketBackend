@@ -58,3 +58,19 @@ CREATE TABLE IF NOT EXISTS refresh_token
     expire_date   TIMESTAMP NOT NULL,
     user_id       BIGINT    REFERENCES user_info (user_id) ON DELETE SET NULL
 );
+
+CREATE TABLE IF NOT EXISTS order_info
+(
+    order_number VARCHAR(40) PRIMARY KEY,
+    is_paid      BOOLEAN   NOT NULL DEFAULT FALSE,
+    created      TIMESTAMP NOT NULL,
+    user_id      BIGINT    REFERENCES user_info (user_id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS order_product
+(
+    order_product_id VARCHAR(40) PRIMARY KEY,
+    order_number     VARCHAR(40) NOT NULL REFERENCES order_info (order_number) ON DELETE CASCADE,
+    product_id       BIGINT REFERENCES product (product_id) ON DELETE CASCADE,
+    amount           INTEGER     NOT NULL
+);

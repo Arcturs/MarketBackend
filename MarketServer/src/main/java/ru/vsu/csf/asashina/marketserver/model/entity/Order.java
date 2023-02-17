@@ -29,7 +29,6 @@ public class Order {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany
-    @JoinColumn(name = "order_number")
+    @OneToMany(mappedBy = "order")
     private Set<OrderProduct> products;
 }

@@ -19,19 +19,18 @@ import ru.vsu.csf.asashina.marketserver.service.CategoryService;
 import ru.vsu.csf.asashina.marketserver.service.ProductService;
 
 import static org.springframework.http.HttpStatus.*;
+import static ru.vsu.csf.asashina.marketserver.model.constant.Tag.CATEGORY;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/categories")
 public class CategoryController {
 
-    private final static String CATEGORY_TAG = "Category";
-
     private final CategoryService categoryService;
     private final ProductService productService;
 
     @GetMapping("")
-    @Operation(summary = "Gets all categories in list", tags = CATEGORY_TAG, responses = {
+    @Operation(summary = "Gets all categories in list", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "200", description = "List of categories returned", content = {
                     @Content(mediaType = "application/json",
                             array = @ArraySchema(schema = @Schema(implementation = CategoryDTO.class)))
@@ -43,7 +42,7 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}/products")
-    @Operation(summary = "Fetches all products in specifies category", tags = CATEGORY_TAG, responses = {
+    @Operation(summary = "Fetches all products in specifies category", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "200", description = "Returns products in pages with category information", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryWithProductsDTO.class))
             }),
@@ -76,7 +75,7 @@ public class CategoryController {
     }
 
     @PostMapping("")
-    @Operation(summary = "Creates new category", tags = CATEGORY_TAG, responses = {
+    @Operation(summary = "Creates new category", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "201", description = "Returns new category", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryDTO.class))
             }),
@@ -92,7 +91,7 @@ public class CategoryController {
     }
 
     @PostMapping("/{id}/attach-products")
-    @Operation(summary = "Attach products to specified category", tags = CATEGORY_TAG, responses = {
+    @Operation(summary = "Attach products to specified category", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "200", description = "Products were successfully attached"),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
@@ -109,7 +108,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Deletes category", tags = CATEGORY_TAG, responses = {
+    @Operation(summary = "Deletes category", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "204", description = "Category was deleted"),
             @ApiResponse(responseCode = "400", description = "Invalid category id", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))

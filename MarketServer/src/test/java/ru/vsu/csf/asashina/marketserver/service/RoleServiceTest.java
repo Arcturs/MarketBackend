@@ -11,7 +11,7 @@ import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.mapper.RoleMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.RoleDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Role;
-import ru.vsu.csf.asashina.marketserver.model.enums.RoleName;
+import ru.vsu.csf.asashina.marketserver.model.constant.RoleName;
 import ru.vsu.csf.asashina.marketserver.repository.RoleRepository;
 
 import java.util.Optional;
@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.USER;
 
 @ExtendWith(MockitoExtension.class)
 class RoleServiceTest {
@@ -33,11 +34,11 @@ class RoleServiceTest {
     private RoleMapper roleMapper = Mappers.getMapper(RoleMapper.class);
 
     private Role createUserRole() {
-        return new Role(1L, RoleName.USER.getName());
+        return new Role(1L, USER);
     }
 
     private RoleDTO createUserRoleDTO() {
-        return new RoleDTO(1L, RoleName.USER.getName());
+        return new RoleDTO(1L, USER);
     }
 
     @Test
@@ -46,7 +47,7 @@ class RoleServiceTest {
         Role roleFromRepository = createUserRole();
         RoleDTO expectedRole = createUserRoleDTO();
 
-        when(roleRepository.findRoleByName(RoleName.USER.getName())).thenReturn(Optional.of(roleFromRepository));
+        when(roleRepository.findRoleByName(USER)).thenReturn(Optional.of(roleFromRepository));
 
         //when
         RoleDTO result = roleService.getUserRole();
@@ -59,7 +60,7 @@ class RoleServiceTest {
     void getUserRoleThrowsExceptionWhenUserRoleDoesNotExist() {
         //given
 
-        when(roleRepository.findRoleByName(RoleName.USER.getName())).thenReturn(Optional.empty());
+        when(roleRepository.findRoleByName(USER)).thenReturn(Optional.empty());
 
         //when, then
         assertThatThrownBy(() -> roleService.getUserRole()).isInstanceOf(ObjectNotExistException.class);

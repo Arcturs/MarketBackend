@@ -12,16 +12,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import ru.vsu.csf.asashina.marketserver.filter.AuthenticationFilter;
-import ru.vsu.csf.asashina.marketserver.model.enums.RoleName;
+import ru.vsu.csf.asashina.marketserver.model.constant.RoleName;
 
 import static org.springframework.http.HttpMethod.*;
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.*;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration implements WebMvcConfigurer {
-
-    private final static String ADMIN_ROLE = RoleName.ADMIN.getName();
 
     private final AuthenticationFilter authenticationFilter;
     private final AuthenticationProvider authenticationProvider;
@@ -35,9 +34,11 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                 .requestMatchers(GET, "/categories/**", "/products/**", "/v3/api-docs/**",
                         "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                .requestMatchers(POST, "/categories/**", "/products").hasAnyAuthority(ADMIN_ROLE)
-                .requestMatchers(PUT, "/products/*").hasAnyAuthority(ADMIN_ROLE)
-                .requestMatchers(DELETE, "/categories/*", "/products/**").hasAnyAuthority(ADMIN_ROLE)
+                .requestMatchers(GET, "/orders/**").hasAnyAuthority(USER)
+
+                .requestMatchers(POST, "/categories/**", "/products").hasAnyAuthority(ADMIN)
+                .requestMatchers(PUT, "/products/*").hasAnyAuthority(ADMIN)
+                .requestMatchers(DELETE, "/categories/*", "/products/**").hasAnyAuthority(ADMIN)
 
                 .anyRequest().authenticated();
 

@@ -16,7 +16,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
-import ru.vsu.csf.asashina.marketserver.TestRequestBuilder;
+import ru.vsu.csf.asashina.marketserver.helper.TestRequestBuilder;
 import ru.vsu.csf.asashina.marketserver.repository.CategoryRepository;
 import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
 import ru.vsu.csf.asashina.marketserver.repository.UserRepository;
@@ -26,6 +26,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.*;
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.ADMIN;
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.ANONYMOUS;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)
@@ -40,7 +42,7 @@ class CategoryControllerITest {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private TestRequestBuilder testRequestBuilder;
+    private Map<String, TestRequestBuilder> testRequestBuilderMap;
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -363,9 +365,10 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createCategoryFromRequestSuccess() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "name", "R"
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "name", "R"
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/categories", request, String.class);
@@ -385,11 +388,12 @@ class CategoryControllerITest {
 
     @Test
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    void createCategoryFromRequestThrowsExceptionForNotAdminRole() throws JSONException {
+    void createCategoryFromRequestThrowsExceptionForNotAdminRole() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
-                "name", "R"
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ANONYMOUS)
+                .createRequestWithRequestBody(Map.of(
+                        "name", "R"
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/categories", request, String.class);
@@ -402,9 +406,10 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createCategoryFromRequestThrowsExceptionForAlreadyExistingCategory() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "name", "n"
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "name", "n"
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/categories", request, String.class);
@@ -422,9 +427,10 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void attachProductsToCategorySuccess() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "productsId", List.of(2L)
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "productsId", List.of(2L)
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/categories/2/attach-products", request,
@@ -441,9 +447,10 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void attachProductsToCategoryThrowsExceptionForNotAdminRole() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
-                "productsId", List.of(2L)
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ANONYMOUS)
+                .createRequestWithRequestBody(Map.of(
+                        "productsId", List.of(2L)
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/categories/2/attach-products", request,
@@ -457,9 +464,10 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void attachProductsToCategoryThrowsExceptionForInvalidId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "productsId", List.of(2L)
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "productsId", List.of(2L)
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/categories/ab/attach-products", request,
@@ -478,9 +486,10 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void attachProductsToCategoryThrowsExceptionForNotExistingId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "productsId", List.of(2L)
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "productsId", List.of(2L)
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/categories/100/attach-products", request,
@@ -499,9 +508,10 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void attachProductsToCategoryThrowsExceptionForNotExistingProductsIds() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "productsId", List.of(4L, 6L)
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "productsId", List.of(4L, 6L)
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/categories/2/attach-products", request,
@@ -520,7 +530,7 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteCategoryByIdSuccess() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/categories/1", HttpMethod.DELETE, request,
@@ -537,7 +547,7 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteCategoryByIdThrowsExceptionForNotAdminRole() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequest();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ANONYMOUS).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/categories/1", HttpMethod.DELETE, request,
@@ -551,7 +561,7 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteCategoryByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/categories/ab", HttpMethod.DELETE, request,
@@ -570,7 +580,7 @@ class CategoryControllerITest {
     @Sql(scripts = "db/CategoryControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteCategoryByIdThrowsExceptionForNotExistingCategory() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/categories/90", HttpMethod.DELETE, request,

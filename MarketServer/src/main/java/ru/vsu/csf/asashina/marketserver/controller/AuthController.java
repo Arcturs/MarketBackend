@@ -22,19 +22,18 @@ import ru.vsu.csf.asashina.marketserver.service.AuthService;
 import ru.vsu.csf.asashina.marketserver.service.TokenService;
 
 import static org.springframework.http.HttpStatus.OK;
+import static ru.vsu.csf.asashina.marketserver.model.constant.Tag.AUTH;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final static String AUTH_TAG = "Auth";
-
     private final AuthService authService;
     private final TokenService tokenService;
 
     @PostMapping("/sign-up")
-    @Operation(summary = "Signs up new user", tags = AUTH_TAG, responses = {
+    @Operation(summary = "Signs up new user", tags = AUTH, responses = {
             @ApiResponse(responseCode = "200", description = "User was successfully registered and tokens are returned", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = TokensDTO.class))
             }),
@@ -51,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @Operation(tags = AUTH_TAG, responses = {
+    @Operation(tags = AUTH, responses = {
             @ApiResponse(responseCode = "200", description = "User was successfully logged in and tokens are returned", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = TokensDTO.class))
             }),
@@ -68,7 +67,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    @Operation(summary = "Refreshes access token using refresh token", tags = AUTH_TAG, responses = {
+    @Operation(summary = "Refreshes access token using refresh token", tags = AUTH, responses = {
             @ApiResponse(responseCode = "200", description = "Tokens are returned", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = TokensDTO.class))
             }),

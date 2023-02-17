@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = "order")
 public class OrderProduct {
 
     @Id
@@ -19,6 +19,16 @@ public class OrderProduct {
     private Integer amount;
 
     @ManyToOne
-    @JoinColumn(name = "product")
+    @JoinColumn(name = "product_id")
     private Product product;
+
+    @ManyToOne
+    @JoinColumn(name = "order_number")
+    private Order order;
+
+    public OrderProduct(String orderProductId, Integer amount, Product product) {
+        this.orderProductId = orderProductId;
+        this.amount = amount;
+        this.product = product;
+    }
 }

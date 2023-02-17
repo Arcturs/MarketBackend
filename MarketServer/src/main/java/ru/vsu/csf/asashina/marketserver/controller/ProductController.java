@@ -17,18 +17,17 @@ import ru.vsu.csf.asashina.marketserver.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.marketserver.service.ProductService;
 
 import static org.springframework.http.HttpStatus.*;
+import static ru.vsu.csf.asashina.marketserver.model.constant.Tag.PRODUCT;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/products")
 public class ProductController {
 
-    private final static String PRODUCT_TAG = "Product";
-
     private final ProductService productService;
 
     @GetMapping("")
-    @Operation(summary = "Fetches all products in pages", tags = PRODUCT_TAG, responses = {
+    @Operation(summary = "Fetches all products in pages", tags = PRODUCT, responses = {
             @ApiResponse(responseCode = "200", description = "Returns products in pages", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ProductsInPagesDTO.class))
             }),
@@ -51,7 +50,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Gets product's details", tags = PRODUCT_TAG, responses = {
+    @Operation(summary = "Gets product's details", tags = PRODUCT, responses = {
             @ApiResponse(responseCode = "200", description = "Returns product", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailedDTO.class))
             }),
@@ -68,7 +67,7 @@ public class ProductController {
     }
 
     @PostMapping("")
-    @Operation(summary = "Creates new product", tags = PRODUCT_TAG, responses = {
+    @Operation(summary = "Creates new product", tags = PRODUCT, responses = {
             @ApiResponse(responseCode = "201", description = "Returns new product", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailedDTO.class))
             }),
@@ -84,7 +83,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Updates product's details", tags = PRODUCT_TAG, responses = {
+    @Operation(summary = "Updates product's details", tags = PRODUCT, responses = {
             @ApiResponse(responseCode = "200", description = "Returns updated product", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailedDTO.class))
             }),
@@ -101,7 +100,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Deletes product", tags = PRODUCT_TAG, responses = {
+    @Operation(summary = "Deletes product", tags = PRODUCT, responses = {
             @ApiResponse(responseCode = "204", description = "Product was deleted"),
             @ApiResponse(responseCode = "400", description = "Invalid product's id", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
@@ -116,7 +115,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}/remove-category/{categoryId}")
-    @Operation(summary = "Removes category from product", tags = PRODUCT_TAG, responses = {
+    @Operation(summary = "Removes category from product", tags = PRODUCT, responses = {
             @ApiResponse(responseCode = "204", description = "Category was removed"),
             @ApiResponse(responseCode = "400", description = "Invalid product/category's id", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))

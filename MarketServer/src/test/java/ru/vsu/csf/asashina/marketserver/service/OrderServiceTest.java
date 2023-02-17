@@ -14,7 +14,7 @@ import ru.vsu.csf.asashina.marketserver.exception.PageException;
 import ru.vsu.csf.asashina.marketserver.mapper.OrderMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.*;
 import ru.vsu.csf.asashina.marketserver.model.entity.*;
-import ru.vsu.csf.asashina.marketserver.model.enums.RoleName;
+import ru.vsu.csf.asashina.marketserver.model.constant.RoleName;
 import ru.vsu.csf.asashina.marketserver.repository.OrderRepository;
 import ru.vsu.csf.asashina.marketserver.util.PageUtils;
 
@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.USER;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
@@ -52,7 +53,7 @@ class OrderServiceTest {
                 .passwordHash("hash")
                 .email("email")
                 .surname("surname")
-                .roles(Set.of(new RoleDTO(1L, RoleName.USER.getName())))
+                .roles(Set.of(new RoleDTO(1L, USER)))
                 .build();
     }
 
@@ -63,7 +64,7 @@ class OrderServiceTest {
                 .passwordHash("hash")
                 .email("email")
                 .surname("surname")
-                .roles(Set.of(new Role(1L, RoleName.USER.getName())))
+                .roles(Set.of(new Role(1L, USER)))
                 .build();
     }
 
