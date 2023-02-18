@@ -17,6 +17,7 @@ import ru.vsu.csf.asashina.marketserver.model.request.LoginRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.UserSignUpRequest;
 import ru.vsu.csf.asashina.marketserver.repository.UserRepository;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -81,5 +82,9 @@ public class UserService {
         return userRepository.findByEmail(email).orElseThrow(
                 () -> new ObjectNotExistException("User with following email does not exist")
         );
+    }
+
+    public boolean isUserAdmin(UserDTO user) {
+        return user.getRoles().contains(roleService.getAdminRole());
     }
 }

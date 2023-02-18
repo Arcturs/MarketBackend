@@ -10,6 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.exception.PageException;
 import ru.vsu.csf.asashina.marketserver.mapper.OrderMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.*;
@@ -22,6 +24,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -29,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.ADMIN;
 import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.USER;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +43,9 @@ class OrderServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
+
+    @Mock
+    private UserService userService;
 
     @Spy
     private OrderMapper orderMapper = Mappers.getMapper(OrderMapper.class);
@@ -53,7 +60,16 @@ class OrderServiceTest {
                 .passwordHash("hash")
                 .email("email")
                 .surname("surname")
-                .roles(Set.of(new RoleDTO(1L, USER)))
+                .roles(Set.of(new RoleDTO(2L, USER)))
+                .build();
+    }
+
+    private UserWithoutPasswordDTO createValidUserWithoutPasswordDTO() {
+        return UserWithoutPasswordDTO.builder()
+                .userId(1L)
+                .name("name")
+                .email("email")
+                .surname("surname")
                 .build();
     }
 
@@ -64,30 +80,61 @@ class OrderServiceTest {
                 .passwordHash("hash")
                 .email("email")
                 .surname("surname")
-                .roles(Set.of(new Role(1L, USER)))
+                .roles(Set.of(new Role(2L, USER)))
+                .build();
+    }
+
+    private UserDTO createValidAdminDTO() {
+        return UserDTO.builder()
+                .userId(2L)
+                .name("admin")
+                .passwordHash("hash")
+                .email("admin")
+                .surname("surname")
+                .roles(Set.of(new RoleDTO(1L, ADMIN)))
+                .build();
+    }
+
+    private UserWithoutPasswordDTO createValidAdminWithoutPasswordDTO() {
+        return UserWithoutPasswordDTO.builder()
+                .userId(2L)
+                .name("admin")
+                .email("admin")
+                .surname("surname")
+                .build();
+    }
+
+    private User createValidAdmin() {
+        return User.builder()
+                .userId(2L)
+                .name("admin")
+                .passwordHash("hash")
+                .email("admin")
+                .surname("surname")
+                .roles(Set.of(new Role(1L, ADMIN)))
                 .build();
     }
 
     private Page<Order> createValidOrderPages() {
         return new PageImpl<>(List.of(
-           Order.builder()
-                   .orderNumber("num1")
-                   .isPaid(false)
-                   .created(Instant.parse("2022-02-16T18:35:24.00Z"))
-                   .user(createValidUser())
-                   .products(Set.of(
-                           new OrderProduct("1", 10,
-                                   Product.builder()
-                                           .productId(1L)
-                                           .name("pr1")
-                                           .amount(100)
-                                           .price(new BigDecimal("10.98"))
-                                           .description("prpr")
-                                           .categories(Collections.emptySet())
-                                           .build()
-                           )
-                   ))
-                   .build(),
+                Order.builder()
+                        .orderNumber("num1")
+                        .isPaid(false)
+                        .created(Instant.parse("2022-02-16T18:35:24.00Z"))
+                        .user(createValidUser())
+                        .products(Set.of(
+                                new OrderProduct("1", 10,
+                                        Product.builder()
+                                                .productId(1L)
+                                                .name("pr1")
+                                                .amount(100)
+                                                .price(new BigDecimal("10.98"))
+                                                .description("prpr")
+                                                .categories(Collections.emptySet())
+                                                .build()
+                                )
+                        ))
+                        .build(),
                 Order.builder()
                         .orderNumber("num2")
                         .isPaid(false)
@@ -180,6 +227,88 @@ class OrderServiceTest {
         ));
     }
 
+    private Order createUsersValidOrder() {
+        return Order.builder()
+                .orderNumber("num1")
+                .isPaid(false)
+                .created(Instant.parse("2022-02-16T18:35:24.00Z"))
+                .user(createValidUser())
+                .products(Set.of(
+                        new OrderProduct("1", 10,
+                                Product.builder()
+                                        .productId(1L)
+                                        .name("pr1")
+                                        .amount(100)
+                                        .price(new BigDecimal("10.98"))
+                                        .description("prpr")
+                                        .categories(Collections.emptySet())
+                                        .build()
+                        )
+                ))
+                .build();
+    }
+
+    private OrderWithUserDTO createUsersValidOrderDTO() {
+        return OrderWithUserDTO.builder()
+                .orderNumber("num1")
+                .isPaid(false)
+                .created(Instant.parse("2022-02-16T18:35:24.00Z"))
+                .products(Set.of(
+                        new OrderProductDTO(10, new BigDecimal("109.80"),
+                                ProductDTO.builder()
+                                        .productId(1L)
+                                        .name("pr1")
+                                        .price(new BigDecimal("10.98"))
+                                        .categories(Collections.emptySet())
+                                        .build()
+                        )
+                ))
+                .user(createValidUserWithoutPasswordDTO())
+                .finalPrice(new BigDecimal("109.80"))
+                .build();
+    }
+
+    private Order createAdminsValidOrder() {
+        return Order.builder()
+                .orderNumber("num1")
+                .isPaid(false)
+                .created(Instant.parse("2022-02-16T18:35:24.00Z"))
+                .user(createValidAdmin())
+                .products(Set.of(
+                        new OrderProduct("1", 10,
+                                Product.builder()
+                                        .productId(1L)
+                                        .name("pr1")
+                                        .amount(100)
+                                        .price(new BigDecimal("10.98"))
+                                        .description("prpr")
+                                        .categories(Collections.emptySet())
+                                        .build()
+                        )
+                ))
+                .build();
+    }
+
+    private OrderWithUserDTO createAdminsValidOrderDTO() {
+        return OrderWithUserDTO.builder()
+                .orderNumber("num1")
+                .isPaid(false)
+                .created(Instant.parse("2022-02-16T18:35:24.00Z"))
+                .products(Set.of(
+                        new OrderProductDTO(10, new BigDecimal("109.80"),
+                                ProductDTO.builder()
+                                        .productId(1L)
+                                        .name("pr1")
+                                        .price(new BigDecimal("10.98"))
+                                        .categories(Collections.emptySet())
+                                        .build()
+                        )
+                ))
+                .user(createValidAdminWithoutPasswordDTO())
+                .finalPrice(new BigDecimal("109.80"))
+                .build();
+    }
+
     @Test
     void getAllOrdersForUserSuccess() {
         //given
@@ -215,5 +344,68 @@ class OrderServiceTest {
         //when, then
         assertThatThrownBy(() -> orderService.getAllOrdersForUser(user, pageNumber, size, isAsc))
                 .isInstanceOf(PageException.class);
+    }
+
+    @Test
+    void getUsersOrderByOrderNumberSuccess() {
+        //given
+        UserDTO user = createValidUserDTO();
+        String orderNumber = "num1";
+
+        Order orderFromRepository = createUsersValidOrder();
+        OrderWithUserDTO expectedOrder = createUsersValidOrderDTO();
+
+        when(orderRepository.findById(orderNumber)).thenReturn(Optional.of(orderFromRepository));
+
+        //when
+        OrderWithUserDTO result = orderService.getUsersOrderByOrderNumber(user, orderNumber);
+
+        //then
+        assertEquals(expectedOrder, result);
+    }
+
+    @Test
+    void getUsersOrderByOrderNumberSuccessAdminsCase() {
+        //given
+        UserDTO user = createValidAdminDTO();
+        String orderNumber = "num1";
+
+        Order orderFromRepository = createUsersValidOrder();
+        OrderWithUserDTO expectedOrder = createUsersValidOrderDTO();
+
+        when(orderRepository.findById(orderNumber)).thenReturn(Optional.of(orderFromRepository));
+        when(userService.isUserAdmin(user)).thenReturn(true);
+
+        //when
+        OrderWithUserDTO result = orderService.getUsersOrderByOrderNumber(user, orderNumber);
+
+        //then
+        assertEquals(expectedOrder, result);
+    }
+
+    @Test
+    void getUsersOrderByOrderNumberThrowsExceptionForNonExistingOrder() {
+        //given
+        UserDTO user = createValidUserDTO();
+        String orderNumber = "num10";
+
+        when(orderRepository.findById(orderNumber)).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> orderService.getUsersOrderByOrderNumber(user, orderNumber))
+                .isInstanceOf(ObjectNotExistException.class);
+    }
+
+    @Test
+    void getUsersOrderByOrderNumberThrowsExceptionWhenUserHasNoAccess() {
+        //given
+        UserDTO user = createValidUserDTO();
+        String orderNumber = "num10";
+
+        when(orderRepository.findById(orderNumber)).thenReturn(Optional.of(createAdminsValidOrder()));
+
+        //when, then
+        assertThatThrownBy(() -> orderService.getUsersOrderByOrderNumber(user, orderNumber))
+                .isInstanceOf(AccessDeniedException.class);
     }
 }

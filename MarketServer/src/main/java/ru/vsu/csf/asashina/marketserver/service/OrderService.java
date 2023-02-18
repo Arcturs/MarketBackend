@@ -3,10 +3,13 @@ package ru.vsu.csf.asashina.marketserver.service;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.mapper.OrderMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.OrderDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.OrderProductDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.OrderWithUserDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.UserDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Order;
 import ru.vsu.csf.asashina.marketserver.repository.OrderRepository;
@@ -22,6 +25,8 @@ public class OrderService {
     private final static String PAGE_SORT_BY_CREATED_TIMESTAMP = "created";
 
     private final OrderRepository orderRepository;
+
+    private final UserService userService;
 
     private final OrderMapper orderMapper;
 
@@ -42,5 +47,26 @@ public class OrderService {
         return products.stream()
                 .map(OrderProductDTO::getOverallPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public OrderWithUserDTO getUsersOrderByOrderNumber(UserDTO user, String orderNumber) {
+        Order order = findOrderByOrderNumber(orderNumber);
+        checkIfUserHasAccessToOrder(order, user);
+
+        OrderWithUserDTO orderDTO = orderMapper.toWithUserDTOFromEntity(order);
+        orderDTO.setFinalPrice(calculateFinalPrice(orderDTO.getProducts()));
+        return orderDTO;
+    }
+
+    private Order findOrderByOrderNumber(String orderNumber) {
+        return orderRepository.findById(orderNumber).orElseThrow(
+                () -> new ObjectNotExistException("Order with following id number does not exist")
+        );
+    }
+
+    private void checkIfUserHasAccessToOrder(Order order, UserDTO user) {
+        if (!userService.isUserAdmin(user) && !order.getUser().getEmail().equals(user.getEmail())) {
+            throw new AccessDeniedException("Access denied");
+        }
     }
 }

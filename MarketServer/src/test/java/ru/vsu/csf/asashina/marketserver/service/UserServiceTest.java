@@ -28,6 +28,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.ADMIN;
 import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.USER;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,7 +53,7 @@ class UserServiceTest {
                 .surname("Sur")
                 .email("hh@com.com")
                 .passwordHash("$2a$10$1pCaZ.GgVDGNG9aMsoIE/eLFOxf5mCpUFTnbhhBW0S7VPfyYKWbUG")
-                .roles(Set.of(new Role(1L, USER)))
+                .roles(Set.of(new Role(2L, USER)))
                 .build();
     }
 
@@ -63,7 +64,7 @@ class UserServiceTest {
                 .surname("Sur")
                 .email("hh@com.com")
                 .passwordHash("$2a$10$1pCaZ.GgVDGNG9aMsoIE/eLFOxf5mCpUFTnbhhBW0S7VPfyYKWbUG")
-                .roles(Set.of(new RoleDTO(1L, USER)))
+                .roles(Set.of(new RoleDTO(2L, USER)))
                 .build();
     }
 
@@ -78,7 +79,7 @@ class UserServiceTest {
                 .repeatPassword("password")
                 .build();
 
-        RoleDTO roleFromService = new RoleDTO(1L, USER);
+        RoleDTO roleFromService = new RoleDTO(2L, USER);
         User savedUser = createValidUser();
         UserDTO expectedUser = createValidUserDTO();
 
@@ -132,7 +133,7 @@ class UserServiceTest {
         //given
         UserDTO user = createValidUserDTO();
 
-        when(roleService.getUserRole()).thenReturn(new RoleDTO(1L, USER));
+        when(roleService.getUserRole()).thenReturn(new RoleDTO(2L, USER));
 
         //when, then
         assertDoesNotThrow(() -> userService.checkIfUserHasUserRole(user));
@@ -144,7 +145,7 @@ class UserServiceTest {
         UserDTO user = createValidUserDTO();
         user.setRoles(Collections.emptySet());
 
-        when(roleService.getUserRole()).thenReturn(new RoleDTO(1L, USER));
+        when(roleService.getUserRole()).thenReturn(new RoleDTO(2L, USER));
 
         //when, then
         assertThatThrownBy(() -> userService.checkIfUserHasUserRole(user)).isInstanceOf(AccessDeniedException.class);
@@ -176,5 +177,36 @@ class UserServiceTest {
 
         //when, then
         assertThatThrownBy(() -> userService.getUserByEmail(email)).isInstanceOf(ObjectNotExistException.class);
+    }
+
+    @Test
+    void isUserAdminReturnsTrue() {
+        //given
+        UserDTO user = createValidUserDTO();
+
+        RoleDTO adminRole = new RoleDTO(1L, ADMIN);
+        user.setRoles(Set.of(adminRole));
+
+        when(roleService.getAdminRole()).thenReturn(adminRole);
+
+        //when
+        boolean result = userService.isUserAdmin(user);
+
+        //then
+        assertTrue(result);
+    }
+
+    @Test
+    void isUserAdminReturnsFalse() {
+        //given
+        UserDTO user = createValidUserDTO();
+
+        when(roleService.getAdminRole()).thenReturn(new RoleDTO(1L, ADMIN));
+
+        //when
+        boolean result = userService.isUserAdmin(user);
+
+        //then
+        assertFalse(result);
     }
 }

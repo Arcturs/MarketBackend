@@ -8,10 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.vsu.csf.asashina.marketserver.model.ResponseBuilder;
 import ru.vsu.csf.asashina.marketserver.model.dto.*;
 import ru.vsu.csf.asashina.marketserver.service.OrderService;
@@ -49,5 +46,22 @@ public class OrderController {
     private OrdersInPagesDTO buildOrdersInPagesResponse(Page<OrderDTO> orders, Integer pageNumber, Integer size) {
         return new OrdersInPagesDTO(orders.getContent(),
                 new PagingInfoDTO(pageNumber, size, orders.getTotalPages()));
+    }
+
+    @GetMapping("/{orderNumber}")
+    @Operation(summary = "Returns user's order by its number", tags = ORDER, responses = {
+            @ApiResponse(responseCode = "200", description = "Returns orders in pages", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = OrderWithUserDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "User has no access to this order", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "404", description = "Order does not exist", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            })
+    })
+    public ResponseEntity<?> getUsersOrderById(@PathVariable("orderNumber") String orderNumber, Authentication authentication) {
+        UserDTO user = userService.getUserByEmail((String) authentication.getPrincipal());
+        return ResponseBuilder.build(OK, orderService.getUsersOrderByOrderNumber(user, orderNumber));
     }
 }

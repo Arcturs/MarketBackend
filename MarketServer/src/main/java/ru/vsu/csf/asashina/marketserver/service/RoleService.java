@@ -9,6 +9,7 @@ import ru.vsu.csf.asashina.marketserver.model.entity.Role;
 import ru.vsu.csf.asashina.marketserver.model.constant.RoleName;
 import ru.vsu.csf.asashina.marketserver.repository.RoleRepository;
 
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.ADMIN;
 import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.USER;
 
 @Service
@@ -28,5 +29,10 @@ public class RoleService {
         return roleRepository.findRoleByName(roleName).orElseThrow(
                 () -> new ObjectNotExistException("Following role does not exist")
         );
+    }
+
+    public RoleDTO getAdminRole() {
+        Role role = findRoleByName(ADMIN);
+        return roleMapper.toDTOFromEntity(role);
     }
 }
