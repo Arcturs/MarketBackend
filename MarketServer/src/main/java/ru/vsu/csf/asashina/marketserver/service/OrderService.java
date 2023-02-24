@@ -5,17 +5,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.vsu.csf.asashina.marketserver.exception.AddZeroAmountProductToOrderException;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.mapper.OrderMapper;
-import ru.vsu.csf.asashina.marketserver.model.dto.OrderDTO;
-import ru.vsu.csf.asashina.marketserver.model.dto.OrderProductDTO;
-import ru.vsu.csf.asashina.marketserver.model.dto.OrderWithUserDTO;
-import ru.vsu.csf.asashina.marketserver.model.dto.UserDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.*;
 import ru.vsu.csf.asashina.marketserver.model.entity.Order;
 import ru.vsu.csf.asashina.marketserver.repository.OrderRepository;
-import ru.vsu.csf.asashina.marketserver.util.PageUtils;
+import ru.vsu.csf.asashina.marketserver.util.PageUtil;
+import ru.vsu.csf.asashina.marketserver.util.UuidUtil;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Set;
 
 @Service
@@ -30,20 +31,28 @@ public class OrderService {
 
     private final OrderMapper orderMapper;
 
-    private final PageUtils pageUtils;
+    private final PageUtil pageUtil;
+    private final UuidUtil uuidUtil;
 
     public Page<OrderDTO> getAllOrdersForUser(UserDTO user, Integer pageNumber, Integer size, Boolean isAsc) {
-        PageRequest pageRequest = pageUtils.createPageRequest(pageNumber, size, isAsc, PAGE_SORT_BY_CREATED_TIMESTAMP);
+        PageRequest pageRequest = pageUtil.createPageRequest(pageNumber, size, isAsc, PAGE_SORT_BY_CREATED_TIMESTAMP);
         Page<Order> pages = orderRepository.getAllInPagesByUserId(user.getUserId(), pageRequest);
 
-        pageUtils.checkPageOutOfRange(pages, pageNumber);
+        pageUtil.checkPageOutOfRange(pages, pageNumber);
 
-        Page<OrderDTO> dtoPages = pages.map(orderMapper::toDTOFromEntity);
-        dtoPages.forEach(el -> el.setFinalPrice(calculateFinalPrice(el.getProducts())));
-        return dtoPages;
+        return pages.map(this::mapOrderWithCalculatingFinalPrice);
+    }
+
+    private OrderDTO mapOrderWithCalculatingFinalPrice(Order order) {
+        OrderDTO dto = orderMapper.toDTOFromEntity(order);
+        dto.setFinalPrice(calculateFinalPrice(dto.getProducts()));
+        return dto;
     }
 
     private BigDecimal calculateFinalPrice(Set<OrderProductDTO> products) {
+        if (products == null) {
+            return BigDecimal.ZERO;
+        }
         return products.stream()
                 .map(OrderProductDTO::getOverallPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -68,5 +77,46 @@ public class OrderService {
         if (!userService.isUserAdmin(user) && !order.getUser().getEmail().equals(user.getEmail())) {
             throw new AccessDeniedException("Access denied");
         }
+    }
+
+    @Transactional
+    public OrderDTO getUsersLastOrderOrCreateNewOne(UserDTO user) {
+        Order order = orderRepository.findLastNotPaidOrderByUserId(user.getUserId())
+                .orElseGet(() -> createOrder(user));
+        return mapOrderWithCalculatingFinalPrice(order);
+    }
+
+    private Order createOrder(UserDTO user) {
+       Order order = orderMapper.createEntity(uuidUtil.generateRandomUUIDInString(), Instant.now(), user);
+       return orderRepository.save(order);
+    }
+
+    @Transactional
+    public void addOrUpdateProductAmountInOrder(OrderDTO order, ProductDTO product, Integer amount) {
+        if (containsProduct(order, product)) {
+            if (amount == 0) {
+                orderRepository.deleteProductFromOrder(order.getOrderNumber(), product.getProductId());
+            } else {
+                orderRepository.updateProductAmountInOrder(order.getOrderNumber(), product.getProductId(), amount);
+            }
+        } else {
+            if (amount == 0) {
+                throw new AddZeroAmountProductToOrderException("You cannot add 0 products");
+            }
+            orderRepository.addProductToOrder(uuidUtil.generateRandomUUIDInString(),
+                    order.getOrderNumber(), product.getProductId(), amount);
+        }
+    }
+
+    private boolean containsProduct(OrderDTO order, ProductDTO product) {
+        if (order.getProducts() == null) {
+            return false;
+        }
+        for (OrderProductDTO orderProduct : order.getProducts()) {
+            if (orderProduct.getProduct().equals(product)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -16,10 +16,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-class PageUtilsTest {
+class PageUtilTest {
 
     @InjectMocks
-    private PageUtils pageUtils;
+    private PageUtil pageUtil;
 
     private Page<Integer> createValidPages() {
         return new PageImpl<>(List.of(1, 2, 3, 4, 5));
@@ -36,7 +36,7 @@ class PageUtilsTest {
         int page = 1;
 
         //when, then
-        assertDoesNotThrow(() -> pageUtils.checkPageOutOfRange(pages, page));
+        assertDoesNotThrow(() -> pageUtil.checkPageOutOfRange(pages, page));
     }
 
     @Test
@@ -46,7 +46,7 @@ class PageUtilsTest {
         int page = 1;
 
         //when, then
-        assertDoesNotThrow(() -> pageUtils.checkPageOutOfRange(pages, page));
+        assertDoesNotThrow(() -> pageUtil.checkPageOutOfRange(pages, page));
     }
 
     @Test
@@ -56,7 +56,7 @@ class PageUtilsTest {
         int page = 2;
 
         //when, then
-        assertThatThrownBy(() -> pageUtils.checkPageOutOfRange(pages, page))
+        assertThatThrownBy(() -> pageUtil.checkPageOutOfRange(pages, page))
                 .isInstanceOf(PageException.class);
     }
 
@@ -67,7 +67,7 @@ class PageUtilsTest {
         int page = 50;
 
         //when, then
-        assertThatThrownBy(() -> pageUtils.checkPageOutOfRange(pages, page))
+        assertThatThrownBy(() -> pageUtil.checkPageOutOfRange(pages, page))
                 .isInstanceOf(PageException.class);
     }
 
@@ -80,7 +80,7 @@ class PageUtilsTest {
         String sort = "sort";
 
         //when
-        PageRequest result = pageUtils.createPageRequest(pageNumber, size, isAsc, sort);
+        PageRequest result = pageUtil.createPageRequest(pageNumber, size, isAsc, sort);
 
         //then
         assertEquals(PageRequest.of(1, 5, Sort.by("sort").descending()), result);

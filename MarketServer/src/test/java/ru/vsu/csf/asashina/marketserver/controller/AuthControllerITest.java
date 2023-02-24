@@ -17,6 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import ru.vsu.csf.asashina.marketserver.helper.TestRequestBuilder;
 import ru.vsu.csf.asashina.marketserver.repository.RefreshTokenRepository;
+import ru.vsu.csf.asashina.marketserver.repository.RoleRepository;
 import ru.vsu.csf.asashina.marketserver.repository.UserRepository;
 
 import java.util.Map;
@@ -44,12 +45,18 @@ class AuthControllerITest {
     private UserRepository userRepository;
 
     @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
     @AfterEach
     void tearDown() {
         userRepository.deleteAll();
         jdbcTemplate.execute("ALTER TABLE user_info ALTER COLUMN user_id RESTART WITH 1");
+
+        roleRepository.deleteAll();
+        jdbcTemplate.execute("ALTER TABLE role ALTER COLUMN role_id RESTART WITH 1");
 
         refreshTokenRepository.deleteAll();
     }

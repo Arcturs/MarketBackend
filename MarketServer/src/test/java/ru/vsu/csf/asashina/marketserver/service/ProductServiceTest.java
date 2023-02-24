@@ -12,17 +12,20 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
+import ru.vsu.csf.asashina.marketserver.exception.OutOfStockException;
 import ru.vsu.csf.asashina.marketserver.exception.PageException;
 import ru.vsu.csf.asashina.marketserver.mapper.ProductMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.CategoryDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.ProductDetailedDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Category;
 import ru.vsu.csf.asashina.marketserver.model.entity.Product;
+import ru.vsu.csf.asashina.marketserver.model.request.AddProductToOrderRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductsListToAttachToCategoryRequest;
 import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
-import ru.vsu.csf.asashina.marketserver.util.PageUtils;
+import ru.vsu.csf.asashina.marketserver.util.PageUtil;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -52,7 +55,7 @@ class ProductServiceTest {
     private ProductMapper productMapper = Mappers.getMapper(ProductMapper.class);
 
     @Spy
-    private PageUtils pageUtils;
+    private PageUtil pageUtil;
 
     private Page<Product> createValidPages() {
         return new PageImpl<>(List.of(
@@ -133,7 +136,15 @@ class ProductServiceTest {
                 .build();
     }
 
-    private ProductDetailedDTO createValidProductDTO() {
+    private ProductDTO createValidProductDTO() {
+        return ProductDTO.builder()
+                .productId(1L)
+                .name("Name 1")
+                .price(new BigDecimal("100.00"))
+                .build();
+    }
+
+    private ProductDetailedDTO createValidDetailedProductDTO() {
         return ProductDetailedDTO.builder()
                 .productId(1L)
                 .name("Name 1")
@@ -248,7 +259,7 @@ class ProductServiceTest {
         long id = 1L;
 
         Product productFromRepository = createValidProduct();
-        ProductDetailedDTO expectedProduct = createValidProductDTO();
+        ProductDetailedDTO expectedProduct = createValidDetailedProductDTO();
 
         when(productRepository.findById(id)).thenReturn(Optional.of(productFromRepository));
 
@@ -283,7 +294,7 @@ class ProductServiceTest {
                 .amount(10)
                 .build();
         Product productFromRepository = createValidProduct();
-        ProductDetailedDTO expectedProduct = createValidProductDTO();
+        ProductDetailedDTO expectedProduct = createValidDetailedProductDTO();
 
         when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
         when(categoryService.getCategoryDTOSetByIds(null)).thenReturn(null);
@@ -313,7 +324,7 @@ class ProductServiceTest {
                 .build();
         Product productFromRepository = createValidProduct();
         productFromRepository.setCategories(entitiesCategory);
-        ProductDetailedDTO expectedProduct = createValidProductDTO();
+        ProductDetailedDTO expectedProduct = createValidDetailedProductDTO();
         expectedProduct.setCategories(createValidCategoryDTOSet());
 
         when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
@@ -479,5 +490,48 @@ class ProductServiceTest {
         //when, then
         assertThatThrownBy(() -> productService.removeCategoryFromProduct(id, categoryId))
                 .isInstanceOf(ObjectNotExistException.class);
+    }
+
+    @Test
+    void getProductFromAddToOrderRequestSuccess() {
+        //given
+        AddProductToOrderRequest request = new AddProductToOrderRequest(1L, 2);
+
+        Product productFromRepo = createValidProduct();
+        ProductDTO expectedProduct = createValidProductDTO();
+
+        when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(productFromRepo));
+
+        //when
+        ProductDTO result = productService.getProductFromAddToOrderRequest(request);
+
+        //then
+        assertEquals(expectedProduct, result);
+    }
+
+    @Test
+    void getProductFromAddToOrderRequestThrowsExceptionForNonExistingProduct() {
+        //given
+        AddProductToOrderRequest request = new AddProductToOrderRequest(10L, 2);
+
+        when(productRepository.findById(request.getProductId())).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> productService.getProductFromAddToOrderRequest(request))
+                .isInstanceOf(ObjectNotExistException.class);
+    }
+
+    @Test
+    void getProductFromAddToOrderRequestThrowsExceptionForWrongAmount() {
+        //given
+        AddProductToOrderRequest request = new AddProductToOrderRequest(1L, 20);
+
+        Product productFromRepo = createValidProduct();
+
+        when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(productFromRepo));
+
+        //when, then
+        assertThatThrownBy(() -> productService.getProductFromAddToOrderRequest(request))
+                .isInstanceOf(OutOfStockException.class);
     }
 }

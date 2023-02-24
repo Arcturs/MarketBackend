@@ -9,7 +9,7 @@ import ru.vsu.csf.asashina.marketserver.exception.PageException;
 
 @Component
 @NoArgsConstructor
-public class PageUtils {
+public class PageUtil {
 
     public void checkPageOutOfRange(Page<?> pages, Integer page) {
         if (page - 1 >= pages.getTotalPages() && page != 1) {

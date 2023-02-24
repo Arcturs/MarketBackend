@@ -16,6 +16,10 @@ INSERT INTO user_info(name, surname, password_hash, email)
 VALUES ('Admin', 'Admin', '$2a$10$1pCaZ.GgVDGNG9aMsoIE/eLFOxf5mCpUFTnbhhBW0S7VPfyYKWbUG', 'admin@com.com'),
        ('User', 'User', '$2a$10$1pCaZ.GgVDGNG9aMsoIE/eLFOxf5mCpUFTnbhhBW0S7VPfyYKWbUG', 'user@com.com');
 
+INSERT INTO role(name)
+VALUES ('ADMIN'),
+       ('USER');
+
 INSERT INTO user_role(user_id, role_id)
 VALUES (1, 1),
        (1, 2),

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +12,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ru.vsu.csf.asashina.marketserver.model.ResponseBuilder;
 import ru.vsu.csf.asashina.marketserver.model.dto.*;
+import ru.vsu.csf.asashina.marketserver.model.request.AddProductToOrderRequest;
 import ru.vsu.csf.asashina.marketserver.service.OrderService;
+import ru.vsu.csf.asashina.marketserver.service.PurchaseService;
 import ru.vsu.csf.asashina.marketserver.service.UserService;
 
 import static org.springframework.http.HttpStatus.OK;
@@ -24,6 +27,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final UserService userService;
+    private final PurchaseService purchaseService;
 
     @GetMapping("")
     @Operation(summary = "Fetches all user's orders in pages", tags = ORDER, responses = {
@@ -63,5 +67,29 @@ public class OrderController {
     public ResponseEntity<?> getUsersOrderById(@PathVariable("orderNumber") String orderNumber, Authentication authentication) {
         UserDTO user = userService.getUserByEmail((String) authentication.getPrincipal());
         return ResponseBuilder.build(OK, orderService.getUsersOrderByOrderNumber(user, orderNumber));
+    }
+
+    @PostMapping("/manage")
+    @Operation(summary = "Updates amount of existing product (if zero, removes it) or adds new product", tags = ORDER, responses = {
+            @ApiResponse(responseCode = "200", description = "Returns order's number", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = OrderWithUserDTO.class))
+            }),
+            @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "Anonymous user", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "404", description = "Product does not exist", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "405", description = "Cannot add 0 new products", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            })
+    })
+    public ResponseEntity<?> manageOrder(@RequestBody @Valid AddProductToOrderRequest request,
+                                               Authentication authentication) {
+        UserDTO user = userService.getUserByEmail((String) authentication.getPrincipal());
+        return ResponseBuilder.build(OK, purchaseService.manageProductInOrder(user, request));
     }
 }

@@ -7,16 +7,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
+import ru.vsu.csf.asashina.marketserver.exception.OutOfStockException;
 import ru.vsu.csf.asashina.marketserver.mapper.ProductMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.CategoryDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.ProductDetailedDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Product;
+import ru.vsu.csf.asashina.marketserver.model.request.AddProductToOrderRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductsListToAttachToCategoryRequest;
 import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
-import ru.vsu.csf.asashina.marketserver.util.PageUtils;
+import ru.vsu.csf.asashina.marketserver.util.PageUtil;
 
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,25 +35,25 @@ public class ProductService {
 
     private final ProductMapper productMapper;
 
-    private final PageUtils pageUtils;
+    private final PageUtil pageUtil;
 
     private final CategoryService categoryService;
 
     public Page<ProductDetailedDTO> getAllProductsInPagesByName(Integer pageNumber, Integer size, String name, Boolean isAsc) {
-        PageRequest pageRequest = pageUtils.createPageRequest(pageNumber, size, isAsc, PAGE_SORT_BY_PRICE);
+        PageRequest pageRequest = pageUtil.createPageRequest(pageNumber, size, isAsc, PAGE_SORT_BY_PRICE);
         Page<Product> pages = productRepository.getProductInPagesAndSearchByName(name, pageRequest);
 
-        pageUtils.checkPageOutOfRange(pages, pageNumber);
+        pageUtil.checkPageOutOfRange(pages, pageNumber);
 
         return pages.map(productMapper::toDetailedDTOFromEntity);
     }
 
     public Page<ProductDetailedDTO> getAllProductsInPagesByNameWithCategoryId(Long categoryId, Integer pageNumber, Integer size, String name, Boolean isAsc) {
-        PageRequest pageRequest = pageUtils.createPageRequest(pageNumber, size, isAsc, PAGE_SORT_BY_PRICE);
+        PageRequest pageRequest = pageUtil.createPageRequest(pageNumber, size, isAsc, PAGE_SORT_BY_PRICE);
         Page<Product> pages = productRepository.getProductInPagesAndSearchByNameWithCategory(name, categoryId,
                 pageRequest);
 
-        pageUtils.checkPageOutOfRange(pages, pageNumber);
+        pageUtil.checkPageOutOfRange(pages, pageNumber);
 
         return pages.map(productMapper::toDetailedDTOFromEntity);
     }
@@ -128,5 +132,17 @@ public class ProductService {
         findProductById(id);
         categoryService.getCategoryById(categoryId);
         productRepository.removeCategoryFromProduct(id, categoryId);
+    }
+
+    public ProductDTO getProductFromAddToOrderRequest(AddProductToOrderRequest request) {
+        Product product = findProductById(request.getProductId());
+        checkIfProductAmountLessThanInDatabase(product.getAmount(), request.getAmount());
+        return productMapper.toDTOFromEntity(product);
+    }
+
+    private void checkIfProductAmountLessThanInDatabase(Integer dbAmount, Integer requestAmount) {
+        if (dbAmount < requestAmount) {
+            throw new OutOfStockException(MessageFormat.format("You cannot buy more than {0} products", dbAmount));
+        }
     }
 }

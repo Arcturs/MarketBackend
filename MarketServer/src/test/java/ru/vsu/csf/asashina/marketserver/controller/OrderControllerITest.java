@@ -10,21 +10,22 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import ru.vsu.csf.asashina.marketserver.helper.TestRequestBuilder;
-import ru.vsu.csf.asashina.marketserver.repository.CategoryRepository;
-import ru.vsu.csf.asashina.marketserver.repository.OrderRepository;
-import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
-import ru.vsu.csf.asashina.marketserver.repository.UserRepository;
+import ru.vsu.csf.asashina.marketserver.repository.*;
+import ru.vsu.csf.asashina.marketserver.util.UuidUtil;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.*;
 import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.*;
 
@@ -55,18 +56,27 @@ class OrderControllerITest {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @SpyBean
+    private UuidUtil uuidUtil;
+
     @AfterEach
     void tearDown() {
         orderRepository.deleteAll();
-
-        userRepository.deleteAll();
-        jdbcTemplate.execute("ALTER TABLE user_info ALTER COLUMN user_id RESTART WITH 1");
 
         productRepository.deleteAll();
         jdbcTemplate.execute("ALTER TABLE product ALTER COLUMN product_id RESTART WITH 1");
 
         categoryRepository.deleteAll();
         jdbcTemplate.execute("ALTER TABLE category ALTER COLUMN category_id RESTART WITH 1");
+
+        userRepository.deleteAll();
+        jdbcTemplate.execute("ALTER TABLE user_info ALTER COLUMN user_id RESTART WITH 1");
+
+        roleRepository.deleteAll();
+        jdbcTemplate.execute("ALTER TABLE role ALTER COLUMN role_id RESTART WITH 1");
     }
 
     @Test
@@ -425,6 +435,201 @@ class OrderControllerITest {
         JSONAssert.assertEquals("""
                 {
                     "message": "Access denied"
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void manageOrderSuccessWhenOrderAlreadyExistsAndProductInOrder() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "productId", "2",
+                "amount", "4"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/manage", POST, request, String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "orderNumber": "9e4dca52-c91a-43d7-8abc-426af8730733"
+                }
+                """, response.getBody(), false);
+
+        assertEquals(4, jdbcTemplate.queryForObject("""
+                                                    SELECT amount
+                                                    FROM order_product
+                                                    WHERE order_number = '9e4dca52-c91a-43d7-8abc-426af8730733'
+                                                      AND product_id = 2""", Integer.class));
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void manageOrderSuccessWhenOrderAlreadyExistsAndProductRemovedFromOrder() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "productId", "2",
+                "amount", "0"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/manage", POST, request, String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "orderNumber": "9e4dca52-c91a-43d7-8abc-426af8730733"
+                }
+                """, response.getBody(), false);
+
+        assertFalse(jdbcTemplate.queryForObject("""
+                SELECT EXISTS(
+                  SELECT 1 
+                  FROM order_product 
+                  WHERE order_number = '9e4dca52-c91a-43d7-8abc-426af8730733'
+                    AND product_id = 2)""", Boolean.class));
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void manageOrderSuccessWhenOrderAlreadyExistsAndNewProductAdded() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "productId", "1",
+                "amount", "2"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/manage", POST, request, String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "orderNumber": "9e4dca52-c91a-43d7-8abc-426af8730733"
+                }
+                """, response.getBody(), false);
+
+        assertEquals(2, jdbcTemplate.queryForObject("""
+                                                    SELECT amount
+                                                    FROM order_product
+                                                    WHERE order_number = '9e4dca52-c91a-43d7-8abc-426af8730733'
+                                                      AND product_id = 1""", Integer.class));
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void manageOrderSuccessWhenNewOrder() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "productId", "1",
+                "amount", "2"
+        ));
+
+        orderRepository.deleteById("9e4dca52-c91a-43d7-8abc-426af8730733"); //deleting not paid order for test purposes
+        when(uuidUtil.generateRandomUUIDInString()).thenReturn("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/manage", POST, request, String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "orderNumber": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                }
+                """, response.getBody(), false);
+
+        assertEquals("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", jdbcTemplate.queryForObject("""
+                                                    SELECT order_number
+                                                    FROM order_info
+                                                    WHERE is_paid = false AND user_id = 2""", String.class));
+        assertEquals(2, jdbcTemplate.queryForObject("""
+                                                    SELECT amount
+                                                    FROM order_product
+                                                    WHERE order_number = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+                                                      AND product_id = 1""", Integer.class));
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void manageOrderThrowsExceptionWhenUserAnonymous() {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ANONYMOUS).createRequestWithRequestBody(Map.of(
+                "productId", "2",
+                "amount", "4"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/manage", POST, request, String.class);
+
+        //then
+        assertEquals(FORBIDDEN, response.getStatusCode());
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void manageOrderThrowsExceptionWhenProductDoesNotExist() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "productId", "10",
+                "amount", "4"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/manage", POST, request, String.class);
+
+        //then
+        assertEquals(NOT_FOUND, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Product with following id does not exist"
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void manageOrderThrowsExceptionWhenUserTriesToAddMoreProductThanInDB() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "productId", "2",
+                "amount", "40"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/manage", POST, request, String.class);
+
+        //then
+        assertEquals(METHOD_NOT_ALLOWED, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "You cannot buy more than 12 products"
+                }
+                """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void manageOrderThrowsExceptionWhenUserTriesToAddZeroNewProduct() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "productId", "1",
+                "amount", "0"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/manage", POST, request, String.class);
+
+        //then
+        assertEquals(BAD_REQUEST, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "You cannot add 0 products"
                 }
                 """, response.getBody(), false);
     }

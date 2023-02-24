@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import ru.vsu.csf.asashina.marketserver.model.entity.Product;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -24,7 +25,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query(value = """
                     SELECT p
                     FROM Product p
-                    JOIN p.categories c 
+                    JOIN p.categories c
                       ON c.categoryId = :categoryId
                     WHERE LOWER(p.name) LIKE CONCAT('%', LOWER(:name), '%')""")
     Page<Product> getProductInPagesAndSearchByNameWithCategory(@Param("name") String name,

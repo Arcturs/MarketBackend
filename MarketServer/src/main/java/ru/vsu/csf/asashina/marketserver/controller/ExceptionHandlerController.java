@@ -30,7 +30,7 @@ public class ExceptionHandlerController {
     }
 
     @ExceptionHandler({PageException.class, TypeMismatchException.class, PasswordsDoNotMatchException.class,
-            WrongCredentialsException.class})
+            WrongCredentialsException.class, AddZeroAmountProductToOrderException.class})
     public ResponseEntity<?> badRequestExceptionHandler(Exception e) {
         return ResponseBuilder.build(BAD_REQUEST, e);
     }
@@ -61,6 +61,11 @@ public class ExceptionHandlerController {
     @ExceptionHandler({ObjectNotExistException.class})
     public ResponseEntity<?> notFoundExceptionHandler(Exception e) {
         return ResponseBuilder.build(NOT_FOUND, e);
+    }
+
+    @ExceptionHandler({OutOfStockException.class})
+    public ResponseEntity<?> methodNotAllowedException(Exception e) {
+        return ResponseBuilder.build(METHOD_NOT_ALLOWED, e);
     }
 
     @ExceptionHandler({ObjectAlreadyExistsException.class})

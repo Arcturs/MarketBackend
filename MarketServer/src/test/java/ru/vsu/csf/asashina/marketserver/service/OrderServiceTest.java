@@ -11,14 +11,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import ru.vsu.csf.asashina.marketserver.exception.AddZeroAmountProductToOrderException;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.exception.PageException;
 import ru.vsu.csf.asashina.marketserver.mapper.OrderMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.*;
 import ru.vsu.csf.asashina.marketserver.model.entity.*;
-import ru.vsu.csf.asashina.marketserver.model.constant.RoleName;
 import ru.vsu.csf.asashina.marketserver.repository.OrderRepository;
-import ru.vsu.csf.asashina.marketserver.util.PageUtils;
+import ru.vsu.csf.asashina.marketserver.util.PageUtil;
+import ru.vsu.csf.asashina.marketserver.util.UuidUtil;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -31,7 +32,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.ADMIN;
 import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.USER;
 
@@ -51,7 +52,10 @@ class OrderServiceTest {
     private OrderMapper orderMapper = Mappers.getMapper(OrderMapper.class);
 
     @Spy
-    private PageUtils pageUtils;
+    private PageUtil pageUtil;
+
+    @Spy
+    private UuidUtil uuidUtil;
 
     private UserDTO createValidUserDTO() {
         return UserDTO.builder()
@@ -268,6 +272,25 @@ class OrderServiceTest {
                 .build();
     }
 
+    private OrderDTO createValidOrderDTO() {
+        return OrderDTO.builder()
+                .orderNumber("num1")
+                .isPaid(false)
+                .created(Instant.parse("2022-02-16T18:35:24.00Z"))
+                .products(Set.of(
+                        new OrderProductDTO(10, new BigDecimal("109.80"),
+                                ProductDTO.builder()
+                                        .productId(1L)
+                                        .name("pr1")
+                                        .price(new BigDecimal("10.98"))
+                                        .categories(Collections.emptySet())
+                                        .build()
+                        )
+                ))
+                .finalPrice(new BigDecimal("109.80"))
+                .build();
+    }
+
     private Order createAdminsValidOrder() {
         return Order.builder()
                 .orderNumber("num1")
@@ -286,26 +309,6 @@ class OrderServiceTest {
                                         .build()
                         )
                 ))
-                .build();
-    }
-
-    private OrderWithUserDTO createAdminsValidOrderDTO() {
-        return OrderWithUserDTO.builder()
-                .orderNumber("num1")
-                .isPaid(false)
-                .created(Instant.parse("2022-02-16T18:35:24.00Z"))
-                .products(Set.of(
-                        new OrderProductDTO(10, new BigDecimal("109.80"),
-                                ProductDTO.builder()
-                                        .productId(1L)
-                                        .name("pr1")
-                                        .price(new BigDecimal("10.98"))
-                                        .categories(Collections.emptySet())
-                                        .build()
-                        )
-                ))
-                .user(createValidAdminWithoutPasswordDTO())
-                .finalPrice(new BigDecimal("109.80"))
                 .build();
     }
 
@@ -407,5 +410,123 @@ class OrderServiceTest {
         //when, then
         assertThatThrownBy(() -> orderService.getUsersOrderByOrderNumber(user, orderNumber))
                 .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void getUsersLastOrderOrCreateNewOneSuccessWhenNotPaidOrderExists() {
+        //given
+        UserDTO user = createValidUserDTO();
+
+        Order orderFromRepo = createUsersValidOrder();
+        OrderDTO expectedOrder = createValidOrderDTO();
+
+        when(orderRepository.findLastNotPaidOrderByUserId(user.getUserId())).thenReturn(Optional.of(orderFromRepo));
+
+        //when
+        OrderDTO result = orderService.getUsersLastOrderOrCreateNewOne(user);
+
+        //then
+        assertEquals(expectedOrder, result);
+    }
+
+    @Test
+    void getUsersLastOrderOrCreateNewOneSuccessWhenNotPaidOrderNotExists() {
+        //given
+        UserDTO user = createValidUserDTO();
+
+        Order orderFromRepo = createUsersValidOrder();
+        OrderDTO expectedOrder = createValidOrderDTO();
+
+        when(orderRepository.findLastNotPaidOrderByUserId(user.getUserId())).thenReturn(Optional.empty());
+        when(orderRepository.save(any(Order.class))).thenReturn(orderFromRepo);
+
+        //when
+        OrderDTO result = orderService.getUsersLastOrderOrCreateNewOne(user);
+
+        //then
+        assertEquals(expectedOrder, result);
+    }
+
+    @Test
+    void addOrUpdateProductAmountInOrderSuccessWhenProductInOrder() {
+        //given
+        OrderDTO order = createValidOrderDTO();
+        ProductDTO product = ProductDTO.builder()
+                .productId(1L)
+                .name("pr1")
+                .price(new BigDecimal("10.98"))
+                .categories(Collections.emptySet())
+                .build();
+        int amount = 10;
+
+        //when
+        assertDoesNotThrow(() -> orderService.addOrUpdateProductAmountInOrder(order, product, amount));
+
+        //then
+        verify(orderRepository, never()).deleteProductFromOrder(order.getOrderNumber(), product.getProductId());
+        verify(orderRepository, only()).updateProductAmountInOrder(order.getOrderNumber(), product.getProductId(), amount);
+        verify(orderRepository, never()).addProductToOrder(any(String.class), eq(order.getOrderNumber()),
+                eq(product.getProductId()), eq(amount));
+    }
+
+    @Test
+    void addOrUpdateProductAmountInOrderSuccessWhenProductInOrderAndAmountEqualsZero() {
+        //given
+        OrderDTO order = createValidOrderDTO();
+        ProductDTO product = ProductDTO.builder()
+                .productId(1L)
+                .name("pr1")
+                .price(new BigDecimal("10.98"))
+                .categories(Collections.emptySet())
+                .build();
+        int amount = 0;
+
+        //when
+        assertDoesNotThrow(() -> orderService.addOrUpdateProductAmountInOrder(order, product, amount));
+
+        //then
+        verify(orderRepository, only()).deleteProductFromOrder(order.getOrderNumber(), product.getProductId());
+        verify(orderRepository, never()).updateProductAmountInOrder(order.getOrderNumber(), product.getProductId(), amount);
+        verify(orderRepository, never()).addProductToOrder(any(String.class), eq(order.getOrderNumber()),
+                eq(product.getProductId()), eq(amount));
+    }
+
+    @Test
+    void addOrUpdateProductAmountInOrderSuccessWhenNewProduct() {
+        //given
+        OrderDTO order = createValidOrderDTO();
+        ProductDTO product = ProductDTO.builder()
+                .productId(10L)
+                .name("pr10")
+                .price(new BigDecimal("8.67"))
+                .categories(Collections.emptySet())
+                .build();
+        int amount = 8;
+
+        //when
+        assertDoesNotThrow(() -> orderService.addOrUpdateProductAmountInOrder(order, product, amount));
+
+        //then
+        verify(orderRepository, never()).deleteProductFromOrder(order.getOrderNumber(), product.getProductId());
+        verify(orderRepository, never()).updateProductAmountInOrder(order.getOrderNumber(), product.getProductId(), amount);
+        verify(orderRepository, only()).addProductToOrder(any(String.class), eq(order.getOrderNumber()),
+                eq(product.getProductId()), eq(amount));
+    }
+
+    @Test
+    void addOrUpdateProductAmountInOrderThrowsExceptionWhenAddingNewProductAndAmountEqualsZero() {
+        //given
+        OrderDTO order = createValidOrderDTO();
+        ProductDTO product = ProductDTO.builder()
+                .productId(10L)
+                .name("pr10")
+                .price(new BigDecimal("8.67"))
+                .categories(Collections.emptySet())
+                .build();
+        int amount = 0;
+
+        //when, then
+        assertThatThrownBy(() -> orderService.addOrUpdateProductAmountInOrder(order, product, amount))
+                .isInstanceOf(AddZeroAmountProductToOrderException.class);
     }
 }

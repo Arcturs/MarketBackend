@@ -20,7 +20,7 @@ public class Order {
     private String orderNumber;
 
     @Column(nullable = false)
-    private Boolean isPaid = false;
+    private Boolean isPaid;
 
     @Column(nullable = false)
     private Instant created;
