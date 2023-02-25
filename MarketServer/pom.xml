@@ -181,6 +181,8 @@
                             <excludes>
                                 <exclude>ru/vsu/csf/asashina/marketserver/MarketServerApplication.class</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/exception/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketserver/listener/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketserver/handler/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/model/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/repository/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/mapper/**</exclude>
@@ -200,6 +202,8 @@
                             <excludes>
                                 <exclude>ru/vsu/csf/asashina/marketserver/MarketServerApplication.class</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/exception/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketserver/listener/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketserver/handler/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/model/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/repository/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/mapper/**</exclude>
