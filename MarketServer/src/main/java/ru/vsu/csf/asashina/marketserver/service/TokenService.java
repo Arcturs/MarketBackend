@@ -20,6 +20,7 @@ import ru.vsu.csf.asashina.marketserver.model.dto.UserDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.RefreshToken;
 import ru.vsu.csf.asashina.marketserver.model.request.RefreshTokenRequest;
 import ru.vsu.csf.asashina.marketserver.repository.RefreshTokenRepository;
+import ru.vsu.csf.asashina.marketserver.util.UuidUtil;
 
 import java.time.Instant;
 import java.util.Date;
@@ -39,6 +40,8 @@ public class TokenService {
     private final UserService userService;
 
     private final RefreshTokenRepository refreshTokenRepository;
+
+    private final UuidUtil uuidUtil;
 
     @Value("${security.jwt.secret-key}")
     private String secretKey;
@@ -113,7 +116,7 @@ public class TokenService {
     }
 
     private String generateRefreshToken(UserDTO user) {
-        String refreshToken = UUID.randomUUID().toString();
+        String refreshToken = uuidUtil.generateRandomUUIDInString();
         refreshTokenRepository.saveNewRefreshToken(
                 refreshToken,
                 Instant.now().plusSeconds(fromDaysToSeconds(refreshTokenExpireTimeInDays)),

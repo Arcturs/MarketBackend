@@ -10,19 +10,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import ru.vsu.csf.asashina.marketserver.exception.ObjectAlreadyExistsException;
-import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
-import ru.vsu.csf.asashina.marketserver.exception.PageException;
+import ru.vsu.csf.asashina.marketserver.exception.*;
 import ru.vsu.csf.asashina.marketserver.mapper.ProductMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.CategoryDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.OrderProductDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.ProductDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.ProductDetailedDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Category;
 import ru.vsu.csf.asashina.marketserver.model.entity.Product;
+import ru.vsu.csf.asashina.marketserver.model.request.AddProductToOrderRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductCreateRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductUpdateRequest;
 import ru.vsu.csf.asashina.marketserver.model.request.ProductsListToAttachToCategoryRequest;
 import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
-import ru.vsu.csf.asashina.marketserver.validator.PageValidator;
+import ru.vsu.csf.asashina.marketserver.util.PageUtil;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -52,26 +53,26 @@ class ProductServiceTest {
     private ProductMapper productMapper = Mappers.getMapper(ProductMapper.class);
 
     @Spy
-    private PageValidator pageValidator;
+    private PageUtil pageUtil;
 
     private Page<Product> createValidPages() {
         return new PageImpl<>(List.of(
                 Product.builder()
                         .productId(1L)
                         .name("Name 1")
-                        .price(BigDecimal.valueOf(100.00F))
+                        .price(new BigDecimal("100.00"))
                         .amount(10)
                         .build(),
                 Product.builder()
                         .productId(2L)
                         .name("Name 2")
-                        .price(BigDecimal.valueOf(100.00F))
+                        .price(new BigDecimal("100.00"))
                         .amount(11)
                         .build(),
                 Product.builder()
                         .productId(3L)
                         .name("Name 3")
-                        .price(BigDecimal.valueOf(120.60F))
+                        .price(new BigDecimal("120.60"))
                         .amount(10)
                         .build()
         ));
@@ -82,42 +83,42 @@ class ProductServiceTest {
                 Product.builder()
                         .productId(1L)
                         .name("Name 1")
-                        .price(BigDecimal.valueOf(100.00F))
+                        .price(new BigDecimal("100.00"))
                         .amount(10)
                         .categories(Set.of(new Category(1L, "Name 1")))
                         .build()
         ));
     }
 
-    private Page<ProductDTO> createValidPagesDTO() {
+    private Page<ProductDetailedDTO> createValidPagesDTO() {
         return new PageImpl<>(List.of(
-                ProductDTO.builder()
+                ProductDetailedDTO.builder()
                         .productId(1L)
                         .name("Name 1")
-                        .price(BigDecimal.valueOf(100.00F))
+                        .price(new BigDecimal("100.00"))
                         .amount(10)
                         .build(),
-                ProductDTO.builder()
+                ProductDetailedDTO.builder()
                         .productId(2L)
                         .name("Name 2")
-                        .price(BigDecimal.valueOf(100.00F))
+                        .price(new BigDecimal("100.00"))
                         .amount(11)
                         .build(),
-                ProductDTO.builder()
+                ProductDetailedDTO.builder()
                         .productId(3L)
                         .name("Name 3")
-                        .price(BigDecimal.valueOf(120.60F))
+                        .price(new BigDecimal("120.60"))
                         .amount(10)
                         .build()
         ));
     }
 
-    private Page<ProductDTO> createValidPagesDTOWithCategory() {
+    private Page<ProductDetailedDTO> createValidPagesDTOWithCategory() {
         return new PageImpl<>(List.of(
-                ProductDTO.builder()
+                ProductDetailedDTO.builder()
                         .productId(1L)
                         .name("Name 1")
-                        .price(BigDecimal.valueOf(100.00F))
+                        .price(new BigDecimal("100.00"))
                         .amount(10)
                         .categories(Set.of(new CategoryDTO(1L, "Name 1")))
                         .build()
@@ -128,7 +129,7 @@ class ProductServiceTest {
         return Product.builder()
                 .productId(1L)
                 .name("Name 1")
-                .price(BigDecimal.valueOf(100.00F))
+                .price(new BigDecimal("100.00"))
                 .amount(10)
                 .build();
     }
@@ -137,7 +138,15 @@ class ProductServiceTest {
         return ProductDTO.builder()
                 .productId(1L)
                 .name("Name 1")
-                .price(BigDecimal.valueOf(100.00F))
+                .price(new BigDecimal("100.00"))
+                .build();
+    }
+
+    private ProductDetailedDTO createValidDetailedProductDTO() {
+        return ProductDetailedDTO.builder()
+                .productId(1L)
+                .name("Name 1")
+                .price(new BigDecimal("100.00"))
                 .amount(10)
                 .build();
     }
@@ -145,7 +154,7 @@ class ProductServiceTest {
     private ProductCreateRequest createValidProductCreateRequest() {
         return ProductCreateRequest.builder()
                 .name("Name 1")
-                .price(BigDecimal.valueOf(100.00F))
+                .price(new BigDecimal("100.00"))
                 .amount(10)
                 .build();
     }
@@ -174,13 +183,13 @@ class ProductServiceTest {
         boolean isAsc = true;
 
         Page<Product> pagesFromRepository = createValidPages();
-        Page<ProductDTO> expectedPages = createValidPagesDTO();
+        Page<ProductDetailedDTO> expectedPages = createValidPagesDTO();
 
         when(productRepository.getProductInPagesAndSearchByName(eq(name), any(Pageable.class)))
                 .thenReturn(pagesFromRepository);
 
         //when
-        Page<ProductDTO> result = productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc);
+        Page<ProductDetailedDTO> result = productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc);
 
         //then
         assertEquals(expectedPages, result);
@@ -194,10 +203,8 @@ class ProductServiceTest {
         String name = "";
         boolean isAsc = false;
 
-        Page<Product> pagesFromRepository = createValidPages();
-
         when(productRepository.getProductInPagesAndSearchByName(eq(name), any(Pageable.class)))
-                .thenReturn(pagesFromRepository);
+                .thenReturn(Page.empty());
 
         //when, then
         assertThatThrownBy(() -> productService.getAllProductsInPagesByName(pageNumber, size, name, isAsc))
@@ -214,13 +221,13 @@ class ProductServiceTest {
         boolean isAsc = true;
 
         Page<Product> pagesFromRepository = createValidPagesWithCategory();
-        Page<ProductDTO> expectedPages = createValidPagesDTOWithCategory();
+        Page<ProductDetailedDTO> expectedPages = createValidPagesDTOWithCategory();
 
         when(productRepository.getProductInPagesAndSearchByNameWithCategory(eq(name), eq(categoryId),
                 any(Pageable.class))).thenReturn(pagesFromRepository);
 
         //when
-        Page<ProductDTO> result = productService.getAllProductsInPagesByNameWithCategoryId(categoryId, pageNumber, size,
+        Page<ProductDetailedDTO> result = productService.getAllProductsInPagesByNameWithCategoryId(categoryId, pageNumber, size,
                 name, isAsc);
 
         //then
@@ -236,10 +243,8 @@ class ProductServiceTest {
         String name = "";
         boolean isAsc = false;
 
-        Page<Product> pagesFromRepository = createValidPagesWithCategory();
-
         when(productRepository.getProductInPagesAndSearchByNameWithCategory(eq(name), eq(categoryId),
-                any(Pageable.class))).thenReturn(pagesFromRepository);
+                any(Pageable.class))).thenReturn(Page.empty());
 
         //when, then
         assertThatThrownBy(() -> productService.getAllProductsInPagesByNameWithCategoryId(categoryId, pageNumber, size,
@@ -252,12 +257,12 @@ class ProductServiceTest {
         long id = 1L;
 
         Product productFromRepository = createValidProduct();
-        ProductDTO expectedProduct = createValidProductDTO();
+        ProductDetailedDTO expectedProduct = createValidDetailedProductDTO();
 
         when(productRepository.findById(id)).thenReturn(Optional.of(productFromRepository));
 
         //when
-        ProductDTO result = productService.getProductById(id);
+        ProductDetailedDTO result = productService.getProductById(id);
 
         //then
         assertEquals(expectedProduct, result);
@@ -283,18 +288,18 @@ class ProductServiceTest {
         Product withoutIdProduct = Product.builder()
                 .productId(null)
                 .name("Name 1")
-                .price(BigDecimal.valueOf(100.00F))
+                .price(new BigDecimal("100.00"))
                 .amount(10)
                 .build();
         Product productFromRepository = createValidProduct();
-        ProductDTO expectedProduct = createValidProductDTO();
+        ProductDetailedDTO expectedProduct = createValidDetailedProductDTO();
 
         when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
         when(categoryService.getCategoryDTOSetByIds(null)).thenReturn(null);
         when(productRepository.save(withoutIdProduct)).thenReturn(productFromRepository);
 
         //when
-        ProductDTO result = productService.createProductFromCreateRequest(request);
+        ProductDetailedDTO result = productService.createProductFromCreateRequest(request);
 
         //then
         assertEquals(expectedProduct, result);
@@ -311,13 +316,13 @@ class ProductServiceTest {
         Product withoutIdProduct = Product.builder()
                 .productId(null)
                 .name("Name 1")
-                .price(BigDecimal.valueOf(100.00F))
+                .price(new BigDecimal("100.00"))
                 .amount(10)
                 .categories(entitiesCategory)
                 .build();
         Product productFromRepository = createValidProduct();
         productFromRepository.setCategories(entitiesCategory);
-        ProductDTO expectedProduct = createValidProductDTO();
+        ProductDetailedDTO expectedProduct = createValidDetailedProductDTO();
         expectedProduct.setCategories(createValidCategoryDTOSet());
 
         when(productRepository.existsProductByNameIgnoreCase(request.getName())).thenReturn(false);
@@ -326,7 +331,7 @@ class ProductServiceTest {
         when(productRepository.save(withoutIdProduct)).thenReturn(productFromRepository);
 
         //when
-        ProductDTO result = productService.createProductFromCreateRequest(request);
+        ProductDetailedDTO result = productService.createProductFromCreateRequest(request);
 
         //then
         assertEquals(expectedProduct, result);
@@ -355,14 +360,14 @@ class ProductServiceTest {
                 .productId(1L)
                 .name("Name 1")
                 .description("Cool")
-                .price(BigDecimal.valueOf(100.00F))
+                .price(new BigDecimal("100.00"))
                 .amount(12)
                 .build();
-        ProductDTO expectedProduct = ProductDTO.builder()
+        ProductDetailedDTO expectedProduct = ProductDetailedDTO.builder()
                 .productId(1L)
                 .name("Name 1")
                 .description("Cool")
-                .price(BigDecimal.valueOf(100.00F))
+                .price(new BigDecimal("100.00"))
                 .amount(12)
                 .build();
 
@@ -370,7 +375,7 @@ class ProductServiceTest {
         when(productRepository.save(afterUpdateEntity)).thenReturn(afterUpdateEntity);
 
         //when
-        ProductDTO result = productService.updateProductFromUpdateRequest(id, request);
+        ProductDetailedDTO result = productService.updateProductFromUpdateRequest(id, request);
 
         //then
         assertEquals(expectedProduct, result);
@@ -422,7 +427,7 @@ class ProductServiceTest {
         List<Product> foundProductListFromRepository = List.of(Product.builder()
                 .productId(2L)
                 .name("Name 2")
-                .price(BigDecimal.valueOf(100.00F))
+                .price(new BigDecimal("100.00"))
                 .amount(11)
                 .build());
 
@@ -483,5 +488,85 @@ class ProductServiceTest {
         //when, then
         assertThatThrownBy(() -> productService.removeCategoryFromProduct(id, categoryId))
                 .isInstanceOf(ObjectNotExistException.class);
+    }
+
+    @Test
+    void getProductFromAddToOrderRequestSuccess() {
+        //given
+        AddProductToOrderRequest request = new AddProductToOrderRequest(1L, 2);
+
+        Product productFromRepo = createValidProduct();
+        ProductDTO expectedProduct = createValidProductDTO();
+
+        when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(productFromRepo));
+
+        //when
+        ProductDTO result = productService.getProductFromAddToOrderRequest(request);
+
+        //then
+        assertEquals(expectedProduct, result);
+    }
+
+    @Test
+    void getProductFromAddToOrderRequestThrowsExceptionForNonExistingProduct() {
+        //given
+        AddProductToOrderRequest request = new AddProductToOrderRequest(10L, 2);
+
+        when(productRepository.findById(request.getProductId())).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> productService.getProductFromAddToOrderRequest(request))
+                .isInstanceOf(ObjectNotExistException.class);
+    }
+
+    @Test
+    void getProductFromAddToOrderRequestThrowsExceptionForWrongAmount() {
+        //given
+        AddProductToOrderRequest request = new AddProductToOrderRequest(1L, 20);
+
+        Product productFromRepo = createValidProduct();
+
+        when(productRepository.findById(request.getProductId())).thenReturn(Optional.of(productFromRepo));
+
+        //when, then
+        assertThatThrownBy(() -> productService.getProductFromAddToOrderRequest(request))
+                .isInstanceOf(OutOfStockException.class);
+    }
+
+    @Test
+    void decreaseProductsAmountSuccess() {
+        //given
+        Set<OrderProductDTO> orderProducts = Set.of(
+                new OrderProductDTO(1, BigDecimal.valueOf(100.00), createValidProductDTO())
+        );
+
+        when(productRepository.findPessimisticLockAllByProductIdIn(List.of(1L))).thenReturn(List.of(createValidProduct()));
+
+        //when, then
+        assertDoesNotThrow(() -> productService.decreaseProductsAmount(orderProducts));
+    }
+
+    @Test
+    void decreaseProductsAmountThrowsExceptionWheOrderProductAreEmpty() {
+        //given
+        Set<OrderProductDTO> orderProducts = Collections.EMPTY_SET;
+
+        //when, then
+        assertThatThrownBy(() -> productService.decreaseProductsAmount(orderProducts))
+                .isInstanceOf(OrderEmptyException.class);
+    }
+
+    @Test
+    void decreaseProductsAmountThrowsExceptionWhenAmountLargerThanInDB() {
+        //given
+        Set<OrderProductDTO> orderProducts = Set.of(
+                new OrderProductDTO(100, BigDecimal.valueOf(100.00), createValidProductDTO())
+        );
+
+        when(productRepository.findPessimisticLockAllByProductIdIn(List.of(1L))).thenReturn(List.of(createValidProduct()));
+
+        //when, then
+        assertThatThrownBy(() -> productService.decreaseProductsAmount(orderProducts))
+                .isInstanceOf(OutOfStockException.class);
     }
 }

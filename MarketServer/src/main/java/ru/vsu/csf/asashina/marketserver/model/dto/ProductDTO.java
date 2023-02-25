@@ -15,8 +15,6 @@ public class ProductDTO {
 
     private Long productId;
     private String name;
-    private String description;
     private BigDecimal price;
-    private Integer amount;
     private Set<CategoryDTO> categories;
 }

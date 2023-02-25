@@ -1,7 +1,6 @@
 package ru.vsu.csf.asashina.marketserver.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,19 +19,18 @@ import ru.vsu.csf.asashina.marketserver.service.CategoryService;
 import ru.vsu.csf.asashina.marketserver.service.ProductService;
 
 import static org.springframework.http.HttpStatus.*;
+import static ru.vsu.csf.asashina.marketserver.model.constant.Tag.CATEGORY;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/categories")
 public class CategoryController {
 
-    private final static String CATEGORY_TAG = "Category";
-
     private final CategoryService categoryService;
     private final ProductService productService;
 
     @GetMapping("")
-    @Operation(summary = "Gets all categories in list", tags = CATEGORY_TAG, responses = {
+    @Operation(summary = "Gets all categories in list", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "200", description = "List of categories returned", content = {
                     @Content(mediaType = "application/json",
                             array = @ArraySchema(schema = @Schema(implementation = CategoryDTO.class)))
@@ -44,7 +42,7 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}/products")
-    @Operation(summary = "Fetches all products in specifies category", tags = CATEGORY_TAG, responses = {
+    @Operation(summary = "Fetches all products in specifies category", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "200", description = "Returns products in pages with category information", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryWithProductsDTO.class))
             }),
@@ -62,12 +60,12 @@ public class CategoryController {
                                                           @RequestParam(value = "name", required = false, defaultValue = "") String name,
                                                           @RequestParam(value = "isAsc", required = false, defaultValue = "true") Boolean isAsc) {
         CategoryDTO category = categoryService.getCategoryById(id);
-        Page<ProductDTO> products =
+        Page<ProductDetailedDTO> products =
                 productService.getAllProductsInPagesByNameWithCategoryId(id, pageNumber, size, name, isAsc);
         return ResponseBuilder.build(OK, buildCategoryWithProductsResponse(category, products, pageNumber, size));
     }
 
-    private CategoryWithProductsDTO buildCategoryWithProductsResponse(CategoryDTO category, Page<ProductDTO> products,
+    private CategoryWithProductsDTO buildCategoryWithProductsResponse(CategoryDTO category, Page<ProductDetailedDTO> products,
                                                                       int pageNumber, int size) {
         return CategoryWithProductsDTO.builder()
                 .category(category)
@@ -77,11 +75,14 @@ public class CategoryController {
     }
 
     @PostMapping("")
-    @Operation(summary = "Creates new category", tags = CATEGORY_TAG, responses = {
+    @Operation(summary = "Creates new category", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "201", description = "Returns new category", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryDTO.class))
             }),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "User is not admin", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
             @ApiResponse(responseCode = "409", description = "Category with following name already exists", content = {
@@ -93,9 +94,12 @@ public class CategoryController {
     }
 
     @PostMapping("/{id}/attach-products")
-    @Operation(summary = "Attach products to specified category", tags = CATEGORY_TAG, responses = {
+    @Operation(summary = "Attach products to specified category", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "200", description = "Products were successfully attached"),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "User is not admin", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
             @ApiResponse(responseCode = "404", description = "Category/Products do not exist", content = {
@@ -110,9 +114,12 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Deletes category", tags = CATEGORY_TAG, responses = {
+    @Operation(summary = "Deletes category", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "204", description = "Category was deleted"),
             @ApiResponse(responseCode = "400", description = "Invalid category id", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "User is not admin", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
             @ApiResponse(responseCode = "404", description = "Category does not exist", content = {

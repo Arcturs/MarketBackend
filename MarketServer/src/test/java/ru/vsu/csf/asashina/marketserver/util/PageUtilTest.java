@@ -1,4 +1,4 @@
-package ru.vsu.csf.asashina.marketserver.validator;
+package ru.vsu.csf.asashina.marketserver.util;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -6,6 +6,8 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import ru.vsu.csf.asashina.marketserver.exception.PageException;
 
 import java.util.List;
@@ -14,10 +16,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-class PageValidatorTest {
+class PageUtilTest {
 
     @InjectMocks
-    private PageValidator pageValidator;
+    private PageUtil pageUtil;
 
     private Page<Integer> createValidPages() {
         return new PageImpl<>(List.of(1, 2, 3, 4, 5));
@@ -34,7 +36,7 @@ class PageValidatorTest {
         int page = 1;
 
         //when, then
-        assertDoesNotThrow(() -> pageValidator.checkPageOutOfRange(pages, page));
+        assertDoesNotThrow(() -> pageUtil.checkPageOutOfRange(pages, page));
     }
 
     @Test
@@ -44,7 +46,7 @@ class PageValidatorTest {
         int page = 1;
 
         //when, then
-        assertDoesNotThrow(() -> pageValidator.checkPageOutOfRange(pages, page));
+        assertDoesNotThrow(() -> pageUtil.checkPageOutOfRange(pages, page));
     }
 
     @Test
@@ -54,7 +56,7 @@ class PageValidatorTest {
         int page = 2;
 
         //when, then
-        assertThatThrownBy(() -> pageValidator.checkPageOutOfRange(pages, page))
+        assertThatThrownBy(() -> pageUtil.checkPageOutOfRange(pages, page))
                 .isInstanceOf(PageException.class);
     }
 
@@ -65,7 +67,22 @@ class PageValidatorTest {
         int page = 50;
 
         //when, then
-        assertThatThrownBy(() -> pageValidator.checkPageOutOfRange(pages, page))
+        assertThatThrownBy(() -> pageUtil.checkPageOutOfRange(pages, page))
                 .isInstanceOf(PageException.class);
+    }
+
+    @Test
+    void createPageRequestSuccess() {
+        //given
+        int pageNumber = 2;
+        int size = 5;
+        boolean isAsc = false;
+        String sort = "sort";
+
+        //when
+        PageRequest result = pageUtil.createPageRequest(pageNumber, size, isAsc, sort);
+
+        //then
+        assertEquals(PageRequest.of(1, 5, Sort.by("sort").descending()), result);
     }
 }

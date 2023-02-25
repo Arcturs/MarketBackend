@@ -13,6 +13,6 @@ import java.util.List;
 public class CategoryWithProductsDTO {
 
     private CategoryDTO category;
-    private List<ProductDTO> products;
+    private List<ProductDetailedDTO> products;
     private PagingInfoDTO paging;
 }
