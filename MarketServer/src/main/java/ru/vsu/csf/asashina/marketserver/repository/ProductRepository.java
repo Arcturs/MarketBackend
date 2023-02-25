@@ -1,8 +1,10 @@
 package ru.vsu.csf.asashina.marketserver.repository;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,7 +26,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query(value = """
                     SELECT p
                     FROM Product p
-                    JOIN p.categories c 
+                    JOIN p.categories c
                       ON c.categoryId = :categoryId
                     WHERE LOWER(p.name) LIKE CONCAT('%', LOWER(:name), '%')""")
     Page<Product> getProductInPagesAndSearchByNameWithCategory(@Param("name") String name,
@@ -42,4 +44,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                       AND category_id = :categoryId""", nativeQuery = true)
     void removeCategoryFromProduct(@Param("productId") Long productId,
                                    @Param("categoryId") Long categoryId);
+
+    @Lock(value = LockModeType.PESSIMISTIC_READ)
+    List<Product> findPessimisticLockAllByProductIdIn(List<Long> ids);
 }

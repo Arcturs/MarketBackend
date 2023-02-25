@@ -23,6 +23,9 @@
         <java-jwt.version>4.2.2</java-jwt.version>
         <httpclient5.version>5.2.1</httpclient5.version>
         <springdoc-openapi-starter-webmvc-ui.version>2.0.2</springdoc-openapi-starter-webmvc-ui.version>
+        <debezium-api.version>2.1.2.Final</debezium-api.version>
+        <debezium-embedded.version>2.1.2.Final</debezium-embedded.version>
+        <debezium-connector-postgres.version>2.1.2.Final</debezium-connector-postgres.version>
     </properties>
     <dependencies>
         <dependency>
@@ -80,6 +83,23 @@
             <artifactId>java-jwt</artifactId>
             <version>${java-jwt.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-api</artifactId>
+            <version>${debezium-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-embedded</artifactId>
+            <version>${debezium-embedded.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-connector-postgres</artifactId>
+            <version>${debezium-connector-postgres.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -161,6 +181,8 @@
                             <excludes>
                                 <exclude>ru/vsu/csf/asashina/marketserver/MarketServerApplication.class</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/exception/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketserver/listener/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketserver/handler/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/model/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/repository/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/mapper/**</exclude>
@@ -180,6 +202,8 @@
                             <excludes>
                                 <exclude>ru/vsu/csf/asashina/marketserver/MarketServerApplication.class</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/exception/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketserver/listener/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketserver/handler/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/model/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/repository/**</exclude>
                                 <exclude>ru/vsu/csf/asashina/marketserver/mapper/**</exclude>

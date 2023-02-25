@@ -1,5 +1,8 @@
 spring:
   datasource:
+    host: ${DATABASE_HOST:localhost}
+    port: ${DATABASE_PORT:5435}
+    dbname: ${DATABASE_NAME:marketdb}
     url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5435}/${DATABASE_NAME:marketdb}
     username: ${DATABASE_USERNAME:postgres}
     password: ${DATABASE_PASSWORD:dumbpassword}
@@ -22,4 +25,4 @@ server:
   shutdown: GRACEFUL
   forward-headers-strategy: NATIVE
   servlet:
-    context-path: ${SERVER_PREFIX:/api/v1}
+    context-path: ${SERVER_PREFIX:/api/v2}

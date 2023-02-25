@@ -3,6 +3,7 @@ package ru.vsu.csf.asashina.marketserver.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 @Table(name = "product")
@@ -25,7 +26,7 @@ public class Product {
     private String description;
 
     @Column(nullable = false)
-    private Float price;
+    private BigDecimal price;
 
     @Column(nullable = false)
     private Integer amount;

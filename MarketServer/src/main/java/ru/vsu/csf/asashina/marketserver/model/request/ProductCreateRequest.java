@@ -3,6 +3,7 @@ package ru.vsu.csf.asashina.marketserver.model.request;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @AllArgsConstructor
@@ -19,8 +20,9 @@ public class ProductCreateRequest {
     private String description;
 
     @NotNull
-    @PositiveOrZero
-    private Float price;
+    @Positive
+    @Digits(integer = 9, fraction = 2)
+    private BigDecimal price;
 
     @NotNull
     @Positive

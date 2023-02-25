@@ -1,9 +1,8 @@
 package ru.vsu.csf.asashina.marketserver.model.dto;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
-import ru.vsu.csf.asashina.marketserver.serializer.PriceJsonSerializer;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -16,12 +15,6 @@ public class ProductDTO {
 
     private Long productId;
     private String name;
-    private String description;
-
-    @JsonSerialize(using = PriceJsonSerializer.class)
-    private Float price;
-
-    private Integer amount;
-
+    private BigDecimal price;
     private Set<CategoryDTO> categories;
 }

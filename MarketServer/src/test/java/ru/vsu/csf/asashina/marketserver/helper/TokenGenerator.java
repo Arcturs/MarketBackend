@@ -1,13 +1,14 @@
-package ru.vsu.csf.asashina.marketserver;
+package ru.vsu.csf.asashina.marketserver.helper;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.vsu.csf.asashina.marketserver.model.dto.RoleDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.UserDTO;
-import ru.vsu.csf.asashina.marketserver.model.enums.RoleName;
 import ru.vsu.csf.asashina.marketserver.service.TokenService;
 
 import java.util.Set;
+
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.*;
 
 @Component
 @AllArgsConstructor
@@ -27,8 +28,25 @@ public class TokenGenerator {
                 .email("admin@com.com")
                 .passwordHash("$2a$10$1pCaZ.GgVDGNG9aMsoIE/eLFOxf5mCpUFTnbhhBW0S7VPfyYKWbUG")
                 .roles(Set.of(
-                        new RoleDTO(1L, RoleName.ADMIN.getName()),
-                        new RoleDTO(2L, RoleName.USER.getName())
+                        new RoleDTO(1L, ADMIN),
+                        new RoleDTO(2L, USER)
+                ))
+                .build();
+    }
+
+    public String generateUserAccessToken() {
+        return tokenService.createTokens(createUser()).getAccessToken();
+    }
+
+    private UserDTO createUser() {
+        return UserDTO.builder()
+                .userId(2L)
+                .name("User")
+                .surname("User")
+                .email("user@com.com")
+                .passwordHash("$2a$10$1pCaZ.GgVDGNG9aMsoIE/eLFOxf5mCpUFTnbhhBW0S7VPfyYKWbUG")
+                .roles(Set.of(
+                        new RoleDTO(2L, USER)
                 ))
                 .build();
     }

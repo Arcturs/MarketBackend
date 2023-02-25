@@ -13,6 +13,6 @@ import java.util.List;
 @Setter
 public class ProductsInPagesDTO {
 
-    private List<ProductDTO> products;
+    private List<ProductDetailedDTO> products;
     private PagingInfoDTO paging;
 }

@@ -14,9 +14,10 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
-import ru.vsu.csf.asashina.marketserver.TestRequestBuilder;
+import ru.vsu.csf.asashina.marketserver.helper.TestRequestBuilder;
 import ru.vsu.csf.asashina.marketserver.repository.CategoryRepository;
 import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
+import ru.vsu.csf.asashina.marketserver.repository.RoleRepository;
 import ru.vsu.csf.asashina.marketserver.repository.UserRepository;
 
 import java.util.List;
@@ -24,6 +25,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.*;
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.ADMIN;
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.ANONYMOUS;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)
@@ -38,7 +41,7 @@ class ProductControllerITest {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private TestRequestBuilder testRequestBuilder;
+    private Map<String, TestRequestBuilder> testRequestBuilderMap;
 
     @Autowired
     private ProductRepository productRepository;
@@ -48,6 +51,9 @@ class ProductControllerITest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     @AfterEach
     void tearDown() {
@@ -59,6 +65,9 @@ class ProductControllerITest {
 
         userRepository.deleteAll();
         jdbcTemplate.execute("ALTER TABLE user_info ALTER COLUMN user_id RESTART WITH 1");
+
+        roleRepository.deleteAll();
+        jdbcTemplate.execute("ALTER TABLE role ALTER COLUMN role_id RESTART WITH 1");
     }
 
     @Test
@@ -70,53 +79,53 @@ class ProductControllerITest {
         //then
         assertEquals(OK, response.getStatusCode());
         JSONAssert.assertEquals("""
-                     {
-                         "paging": {
-                             "pageNumber": 1,
-                             "size": 5,
-                             "totalPages": 1
-                         },
-                         "products": [
-                            {
-                                "productId": 3,
-                                "name": "Name 3",
-                                "description": null,
-                                "price": 56.60,
-                                "amount": 3,
-                                "categories": [
-                                    {
-                                        "categoryId": 1,
-                                        "name": "N"
-                                    }
-                                ]
-                            },
-                            {
-                                "productId": 1,
-                                "name": "Name 1",
-                                "description": null,
-                                "price": 100.00,
-                                "amount": 10,
-                                "categories": [
-                                    {
-                                        "categoryId": 1,
-                                        "name": "N"
-                                    },
-                                    {
-                                        "categoryId": 2,
-                                        "name": "V"
-                                    }
-                                ]
-                            },
-                            {
-                                "productId": 2,
-                                "name": "Name 2",
-                                "description": null,
-                                "price": 100.00,
-                                "amount": 12
-                            }
-                         ]
-                     }
-                     """, response.getBody(), false);
+                {
+                    "paging": {
+                        "pageNumber": 1,
+                        "size": 5,
+                        "totalPages": 1
+                    },
+                    "products": [
+                       {
+                           "productId": 3,
+                           "name": "Name 3",
+                           "description": null,
+                           "price": 56.60,
+                           "amount": 3,
+                           "categories": [
+                               {
+                                   "categoryId": 1,
+                                   "name": "N"
+                               }
+                           ]
+                       },
+                       {
+                           "productId": 1,
+                           "name": "Name 1",
+                           "description": null,
+                           "price": 100.00,
+                           "amount": 10,
+                           "categories": [
+                               {
+                                   "categoryId": 1,
+                                   "name": "N"
+                               },
+                               {
+                                   "categoryId": 2,
+                                   "name": "V"
+                               }
+                           ]
+                       },
+                       {
+                           "productId": 2,
+                           "name": "Name 2",
+                           "description": null,
+                           "price": 100.00,
+                           "amount": 12
+                       }
+                    ]
+                }
+                """, response.getBody(), false);
     }
 
     @Test
@@ -128,23 +137,23 @@ class ProductControllerITest {
         //then
         assertEquals(OK, response.getStatusCode());
         JSONAssert.assertEquals("""
-                     {
-                         "paging": {
-                             "pageNumber": 2,
-                             "size": 2,
-                             "totalPages": 2
-                         },
-                         "products": [
-                            {
-                                "productId": 2,
-                                "name": "Name 2",
-                                "description": null,
-                                "price": 100.00,
-                                "amount": 12
-                            }
-                         ]
-                     }
-                     """, response.getBody(), false);
+                {
+                    "paging": {
+                        "pageNumber": 2,
+                        "size": 2,
+                        "totalPages": 2
+                    },
+                    "products": [
+                       {
+                           "productId": 2,
+                           "name": "Name 2",
+                           "description": null,
+                           "price": 100.00,
+                           "amount": 12
+                       }
+                    ]
+                }
+                """, response.getBody(), false);
     }
 
     @Test
@@ -156,53 +165,53 @@ class ProductControllerITest {
         //then
         assertEquals(OK, response.getStatusCode());
         JSONAssert.assertEquals("""
-                     {
-                         "paging": {
-                             "pageNumber": 1,
-                             "size": 5,
-                             "totalPages": 1
-                         },
-                         "products": [
-                            {
-                                "productId": 2,
-                                "name": "Name 2",
-                                "description": null,
-                                "price": 100.00,
-                                "amount": 12
-                            },
-                            {
-                                "productId": 1,
-                                "name": "Name 1",
-                                "description": null,
-                                "price": 100.00,
-                                "amount": 10,
-                                "categories": [
-                                    {
-                                        "categoryId": 1,
-                                        "name": "N"
-                                    },
-                                    {
-                                        "categoryId": 2,
-                                        "name": "V"
-                                    }
-                                ]
-                            },
-                            {
-                                "productId": 3,
-                                "name": "Name 3",
-                                "description": null,
-                                "price": 56.60,
-                                "amount": 3,
-                                "categories": [
-                                    {
-                                        "categoryId": 1,
-                                        "name": "N"
-                                    }
-                                ]
-                            }
-                         ]
-                     }
-                     """, response.getBody(), false);
+                {
+                    "paging": {
+                        "pageNumber": 1,
+                        "size": 5,
+                        "totalPages": 1
+                    },
+                    "products": [
+                       {
+                           "productId": 2,
+                           "name": "Name 2",
+                           "description": null,
+                           "price": 100.00,
+                           "amount": 12
+                       },
+                       {
+                           "productId": 1,
+                           "name": "Name 1",
+                           "description": null,
+                           "price": 100.00,
+                           "amount": 10,
+                           "categories": [
+                               {
+                                   "categoryId": 1,
+                                   "name": "N"
+                               },
+                               {
+                                   "categoryId": 2,
+                                   "name": "V"
+                               }
+                           ]
+                       },
+                       {
+                           "productId": 3,
+                           "name": "Name 3",
+                           "description": null,
+                           "price": 56.60,
+                           "amount": 3,
+                           "categories": [
+                               {
+                                   "categoryId": 1,
+                                   "name": "N"
+                               }
+                           ]
+                       }
+                    ]
+                }
+                """, response.getBody(), false);
     }
 
     @Test
@@ -214,33 +223,33 @@ class ProductControllerITest {
         //then
         assertEquals(OK, response.getStatusCode());
         JSONAssert.assertEquals("""
-                     {
-                         "paging": {
-                             "pageNumber": 1,
-                             "size": 5,
-                             "totalPages": 1
-                         },
-                         "products": [
-                            {
-                                "productId": 1,
-                                "name": "Name 1",
-                                "description": null,
-                                "price": 100.00,
-                                "amount": 10,
-                                "categories": [
-                                    {
-                                        "categoryId": 1,
-                                        "name": "N"
-                                    },
-                                    {
-                                        "categoryId": 2,
-                                        "name": "V"
-                                    }
-                                ]
-                            }
-                         ]
-                     }
-                     """, response.getBody(), false);
+                {
+                    "paging": {
+                        "pageNumber": 1,
+                        "size": 5,
+                        "totalPages": 1
+                    },
+                    "products": [
+                       {
+                           "productId": 1,
+                           "name": "Name 1",
+                           "description": null,
+                           "price": 100.00,
+                           "amount": 10,
+                           "categories": [
+                               {
+                                   "categoryId": 1,
+                                   "name": "N"
+                               },
+                               {
+                                   "categoryId": 2,
+                                   "name": "V"
+                               }
+                           ]
+                       }
+                    ]
+                }
+                """, response.getBody(), false);
     }
 
     @Test
@@ -252,10 +261,10 @@ class ProductControllerITest {
         //then
         assertEquals(BAD_REQUEST, response.getStatusCode());
         JSONAssert.assertEquals("""
-                     {
-                        "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; For input string: \\"ab\\""
-                     }
-                     """, response.getBody(), false);
+                {
+                   "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
     }
 
     @Test
@@ -267,10 +276,10 @@ class ProductControllerITest {
         //then
         assertEquals(BAD_REQUEST, response.getStatusCode());
         JSONAssert.assertEquals("""
-                     {
-                        "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; For input string: \\"ab\\""
-                     }
-                     """, response.getBody(), false);
+                {
+                   "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; For input string: \\"ab\\""
+                }
+                """, response.getBody(), false);
     }
 
     @Test
@@ -282,10 +291,10 @@ class ProductControllerITest {
         //then
         assertEquals(BAD_REQUEST, response.getStatusCode());
         JSONAssert.assertEquals("""
-                     {
-                        "message": "Page number is out of range"
-                     }
-                     """, response.getBody(), false);
+                {
+                   "message": "Page number is out of range"
+                }
+                """, response.getBody(), false);
     }
 
     @Test
@@ -314,7 +323,7 @@ class ProductControllerITest {
                         }
                     ]
                 }
-                """,  response.getBody(), false);
+                """, response.getBody(), false);
     }
 
     @Test
@@ -329,7 +338,7 @@ class ProductControllerITest {
                 {
                     "message": "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \\"ab\\""
                 }
-                """,  response.getBody(), false);
+                """, response.getBody(), false);
     }
 
     @Test
@@ -344,18 +353,19 @@ class ProductControllerITest {
                 {
                     "message": "Product with following id does not exist"
                 }
-                """,  response.getBody(), false);
+                """, response.getBody(), false);
     }
 
     @Test
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductSuccess() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "name", "Name 4",
-                "price", "67.67",
-                "amount", "4"
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "name", "Name 4",
+                        "price", "67.67",
+                        "amount", "4"
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/products", request, String.class);
@@ -370,7 +380,7 @@ class ProductControllerITest {
                     "price": 67.67,
                     "amount": 4
                 }
-                """,  response.getBody(), false);
+                """, response.getBody(), false);
 
         assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM product WHERE product_id = 4)",
                 Boolean.class), true);
@@ -378,13 +388,14 @@ class ProductControllerITest {
 
     @Test
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    void createProductThrowsExceptionForNotAdminRole() throws JSONException {
+    void createProductThrowsExceptionForNotAdminRole() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
-                "name", "Name 4",
-                "price", "67.67",
-                "amount", "4"
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ANONYMOUS)
+                .createRequestWithRequestBody(Map.of(
+                        "name", "Name 4",
+                        "price", "67.67",
+                        "amount", "4"
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/products", request, String.class);
@@ -397,12 +408,13 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductSuccessWithCategory() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "name", "Name 4",
-                "price", "67.67",
-                "amount", "4",
-                "categoriesId", List.of(2L)
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "name", "Name 4",
+                        "price", "67.67",
+                        "amount", "4",
+                        "categoriesId", List.of(2L)
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/products", request, String.class);
@@ -423,23 +435,24 @@ class ProductControllerITest {
                         }
                     ]
                 }
-                """,  response.getBody(), false);
+                """, response.getBody(), false);
 
         assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM product WHERE product_id = 4)",
                 Boolean.class), true);
         assertEquals(jdbcTemplate.queryForObject("SELECT category_id FROM product_category WHERE product_id = 4",
-                        Long.class), 2L);
+                Long.class), 2L);
     }
 
     @Test
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createProductThrowsExceptionWhenObjectWithRequestedNameAlreadyExists() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "name", "Name 1",
-                "price", "67.67",
-                "amount", "4"
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "name", "Name 1",
+                        "price", "67.67",
+                        "amount", "4"
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.postForEntity("/products", request, String.class);
@@ -450,7 +463,7 @@ class ProductControllerITest {
                 {
                     "message": "Product with following name already exists"
                 }
-                """,  response.getBody(), false);
+                """, response.getBody(), false);
 
         assertEquals(jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM product WHERE product_id = 4)",
                 Boolean.class), false);
@@ -460,10 +473,11 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdSuccess() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "amount", "12",
-                "description", "Cool"
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "amount", "12",
+                        "description", "Cool"
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1", HttpMethod.PUT, request,
@@ -500,12 +514,13 @@ class ProductControllerITest {
 
     @Test
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    void updateProductByIdThrowsExceptionForNotAdminRole() throws JSONException {
+    void updateProductByIdThrowsExceptionForNotAdminRole() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBody(Map.of(
-                "amount", "12",
-                "description", "Cool"
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ANONYMOUS)
+                .createRequestWithRequestBody(Map.of(
+                        "amount", "12",
+                        "description", "Cool"
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1", HttpMethod.PUT, request,
@@ -519,10 +534,11 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "amount", "12",
-                "description", "Cool"
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "amount", "12",
+                        "description", "Cool"
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/ab", HttpMethod.PUT, request,
@@ -541,10 +557,11 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateProductByIdThrowsExceptionForNotExistingObject() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithRequestBodyAndAdminToken(Map.of(
-                "amount", "12",
-                "description", "Cool"
-        ));
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN)
+                .createRequestWithRequestBody(Map.of(
+                        "amount", "12",
+                        "description", "Cool"
+                ));
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/4", HttpMethod.PUT, request,
@@ -563,7 +580,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdSuccess() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1", HttpMethod.DELETE, request,
@@ -580,7 +597,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForNotAdminRole() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequest();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ANONYMOUS).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1", HttpMethod.DELETE, request,
@@ -594,7 +611,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForInvalidId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/ab", HttpMethod.DELETE, request,
@@ -613,7 +630,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteProductByIdThrowsExceptionForNotExistingId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/100", HttpMethod.DELETE, request,
@@ -632,7 +649,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductSuccess() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/1",
@@ -649,7 +666,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductThrowsExceptionForNotAdminRole() {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequest();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ANONYMOUS).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/1",
@@ -663,7 +680,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductThrowsExceptionForInvalidProductId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/ab/remove-category/1",
@@ -682,7 +699,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductThrowsExceptionForInvalidCategoryId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/ab",
@@ -701,7 +718,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductThrowsExceptionForNotExistingProductId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/100/remove-category/1",
@@ -720,7 +737,7 @@ class ProductControllerITest {
     @Sql(scripts = "db/ProductControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void removeCategoryFromProductThrowsExceptionForNotExistingCategoryId() throws JSONException {
         //given
-        HttpEntity<Map<String, Object>> request = testRequestBuilder.createRequestWithAdminToken();
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ADMIN).createRequest();
 
         //when
         ResponseEntity<String> response = testRestTemplate.exchange("/products/1/remove-category/100",

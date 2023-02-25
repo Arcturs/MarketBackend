@@ -28,4 +28,13 @@
         <sqlFile path="changeset/create/create-refresh_token-table.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="6-Create-order-table" author="Anastasiya Sashina">
+        <sqlFile path="changeset/create/create-order_info-table.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="changeset/create/create-order_product-table.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="7-Alter-price_column-in-product" author="Anastasiya Sashina">
+        <sqlFile path="changeset/alter/alter-product-change_price_column_type.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

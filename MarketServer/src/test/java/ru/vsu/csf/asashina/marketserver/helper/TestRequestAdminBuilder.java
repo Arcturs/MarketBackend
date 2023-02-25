@@ -1,30 +1,23 @@
-package ru.vsu.csf.asashina.marketserver;
+package ru.vsu.csf.asashina.marketserver.helper;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import ru.vsu.csf.asashina.marketserver.model.constant.RoleName;
 
 import java.util.Map;
 
-@Component
+import static ru.vsu.csf.asashina.marketserver.model.constant.RoleName.ADMIN;
+
+@Component(ADMIN)
 @AllArgsConstructor
-public class TestRequestBuilder {
+public class TestRequestAdminBuilder implements TestRequestBuilder{
 
     private final TokenGenerator tokenGenerator;
 
+    @Override
     public HttpEntity<Map<String, Object>> createRequest() {
-        return new HttpEntity<>(initHeaders());
-    }
-
-    private HttpHeaders initHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return headers;
-    }
-
-    public HttpEntity<Map<String, Object>> createRequestWithAdminToken() {
         return new HttpEntity<>(initHeadersWithAdminToken());
     }
 
@@ -34,11 +27,8 @@ public class TestRequestBuilder {
         return headers;
     }
 
+    @Override
     public HttpEntity<Map<String, Object>> createRequestWithRequestBody(Map<String, Object> requestBody) {
-        return new HttpEntity<>(requestBody, initHeaders());
-    }
-
-    public HttpEntity<Map<String, Object>> createRequestWithRequestBodyAndAdminToken(Map<String, Object> requestBody) {
         return new HttpEntity<>(requestBody, initHeadersWithAdminToken());
     }
 }
