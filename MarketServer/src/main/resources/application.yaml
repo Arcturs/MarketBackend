@@ -25,4 +25,4 @@ server:
   shutdown: GRACEFUL
   forward-headers-strategy: NATIVE
   servlet:
-    context-path: ${SERVER_PREFIX:/api/v1}
+    context-path: ${SERVER_PREFIX:/api/v2}

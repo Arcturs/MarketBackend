@@ -42,16 +42,3 @@ jobs:
         run: |
           cd MarketServer
           mvn clean verify
-
-  build-docker-image:
-    needs: test
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Build docker image
-        run: docker-compose up -d
-
-      - name: Check if containers are running
-        run: docker ps

@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
                 title = "Market Server API",
                 description = "Описание всех эндпоинтов сервера \"маркет\"",
                 contact = @Contact(name = "Анастасия Сашина", email = "sashina@cs.vsu.ru"),
-                version = "1.0.1"),
+                version = "1.0.2"),
         security = { @SecurityRequirement(name = "Bearer") })
 public class SpringdocConfiguration {
 }
