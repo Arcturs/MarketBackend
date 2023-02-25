@@ -82,6 +82,9 @@ public class CategoryController {
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
+            @ApiResponse(responseCode = "403", description = "User is not admin", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
             @ApiResponse(responseCode = "409", description = "Category with following name already exists", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             })
@@ -94,6 +97,9 @@ public class CategoryController {
     @Operation(summary = "Attach products to specified category", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "200", description = "Products were successfully attached"),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "User is not admin", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
             @ApiResponse(responseCode = "404", description = "Category/Products do not exist", content = {
@@ -111,6 +117,9 @@ public class CategoryController {
     @Operation(summary = "Deletes category", tags = CATEGORY, responses = {
             @ApiResponse(responseCode = "204", description = "Category was deleted"),
             @ApiResponse(responseCode = "400", description = "Invalid category id", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "User is not admin", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
             @ApiResponse(responseCode = "404", description = "Category does not exist", content = {

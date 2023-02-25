@@ -5,8 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vsu.csf.asashina.marketserver.exception.AddZeroAmountProductToOrderException;
+import ru.vsu.csf.asashina.marketserver.exception.AllOrdersAreAlreadyPaidException;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.mapper.OrderMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.*;
@@ -86,6 +88,13 @@ public class OrderService {
         return mapOrderWithCalculatingFinalPrice(order);
     }
 
+    public OrderDTO getUsersLastOrder(UserDTO user) {
+        Order order = orderRepository.findLastNotPaidOrderByUserId(user.getUserId()).orElseThrow(
+                () -> new AllOrdersAreAlreadyPaidException("All orders are already paid")
+        );
+        return mapOrderWithCalculatingFinalPrice(order);
+    }
+
     private Order createOrder(UserDTO user) {
        Order order = orderMapper.createEntity(uuidUtil.generateRandomUUIDInString(), Instant.now(), user);
        return orderRepository.save(order);
@@ -118,5 +127,10 @@ public class OrderService {
             }
         }
         return false;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void setOrderPaid(String orderNumber) {
+        orderRepository.setOrderPaid(orderNumber);
     }
 }

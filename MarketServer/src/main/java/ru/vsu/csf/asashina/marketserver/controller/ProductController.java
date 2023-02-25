@@ -74,6 +74,9 @@ public class ProductController {
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
+            @ApiResponse(responseCode = "403", description = "User is not admin", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
             @ApiResponse(responseCode = "409", description = "Product with following name already exists", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             })
@@ -88,6 +91,9 @@ public class ProductController {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailedDTO.class))
             }),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "User is not admin", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
             @ApiResponse(responseCode = "404", description = "Product does not exist", content = {
@@ -105,6 +111,9 @@ public class ProductController {
             @ApiResponse(responseCode = "400", description = "Invalid product's id", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
+            @ApiResponse(responseCode = "403", description = "User is not admin", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
             @ApiResponse(responseCode = "404", description = "Product does not exist", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             })
@@ -118,6 +127,9 @@ public class ProductController {
     @Operation(summary = "Removes category from product", tags = PRODUCT, responses = {
             @ApiResponse(responseCode = "204", description = "Category was removed"),
             @ApiResponse(responseCode = "400", description = "Invalid product/category's id", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "User is not admin", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
             @ApiResponse(responseCode = "404", description = "Product/Category does not exist", content = {

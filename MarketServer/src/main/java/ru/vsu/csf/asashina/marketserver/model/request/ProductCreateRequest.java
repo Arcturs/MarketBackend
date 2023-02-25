@@ -20,6 +20,7 @@ public class ProductCreateRequest {
     private String description;
 
     @NotNull
+    @Positive
     @Digits(integer = 9, fraction = 2)
     private BigDecimal price;
 

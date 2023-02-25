@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import ru.vsu.csf.asashina.marketserver.exception.AddZeroAmountProductToOrderException;
+import ru.vsu.csf.asashina.marketserver.exception.AllOrdersAreAlreadyPaidException;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
 import ru.vsu.csf.asashina.marketserver.exception.PageException;
 import ru.vsu.csf.asashina.marketserver.mapper.OrderMapper;
@@ -448,6 +449,35 @@ class OrderServiceTest {
     }
 
     @Test
+    void getUsersLastOrderSuccess() {
+        //given
+        UserDTO user = createValidUserDTO();
+
+        Order orderFromRepository = createUsersValidOrder();
+        OrderDTO expectedOrder = createValidOrderDTO();
+
+        when(orderRepository.findLastNotPaidOrderByUserId(user.getUserId())).thenReturn(Optional.of(orderFromRepository));
+
+        //when
+        OrderDTO result = orderService.getUsersLastOrder(user);
+
+        //then
+        assertEquals(expectedOrder, result);
+    }
+
+    @Test
+    void getUsersLastOrderThrowsExceptionWhenAllOrdersArePaid() {
+        //given
+        UserDTO user = createValidUserDTO();
+
+        when(orderRepository.findLastNotPaidOrderByUserId(user.getUserId())).thenReturn(Optional.empty());
+
+        //when, then
+        assertThatThrownBy(() -> orderService.getUsersLastOrder(user))
+                .isInstanceOf(AllOrdersAreAlreadyPaidException.class);
+    }
+
+    @Test
     void addOrUpdateProductAmountInOrderSuccessWhenProductInOrder() {
         //given
         OrderDTO order = createValidOrderDTO();
@@ -528,5 +558,16 @@ class OrderServiceTest {
         //when, then
         assertThatThrownBy(() -> orderService.addOrUpdateProductAmountInOrder(order, product, amount))
                 .isInstanceOf(AddZeroAmountProductToOrderException.class);
+    }
+
+    @Test
+    void setOrderPaidSuccess() {
+        //given
+        String orderNumber = "num1";
+
+        doNothing().when(orderRepository).setOrderPaid(orderNumber);
+
+        //when, then
+        assertDoesNotThrow(() -> orderService.setOrderPaid(orderNumber));
     }
 }

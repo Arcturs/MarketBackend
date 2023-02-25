@@ -486,7 +486,7 @@ class OrderControllerITest {
                 }
                 """, response.getBody(), false);
 
-        assertFalse(jdbcTemplate.queryForObject("""
+        assertNotEquals(Boolean.TRUE, jdbcTemplate.queryForObject("""
                 SELECT EXISTS(
                   SELECT 1 
                   FROM order_product 
@@ -632,5 +632,129 @@ class OrderControllerITest {
                     "message": "You cannot add 0 products"
                 }
                 """, response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void payForOrderSuccess() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "balance", "500.00"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/pay", POST, request, String.class);
+
+        //then
+        assertEquals(OK, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "orderNumber": "9e4dca52-c91a-43d7-8abc-426af8730733"
+                }""", response.getBody(), false);
+
+        assertEquals(Boolean.TRUE, jdbcTemplate.queryForObject("""
+                        SELECT is_paid
+                        FROM order_info
+                        WHERE order_number = '9e4dca52-c91a-43d7-8abc-426af8730733'""",
+                Boolean.class));
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void payForOrderThrowsExceptionForAnonymous() {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(ANONYMOUS).createRequestWithRequestBody(Map.of(
+                "balance", "500.00"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/pay", POST, request, String.class);
+
+        //then
+        assertEquals(FORBIDDEN, response.getStatusCode());
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void payForOrderThrowsExceptionWhenUserHasNoNotPaidOrders() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "balance", "500.00"
+        ));
+
+        orderRepository.deleteById("9e4dca52-c91a-43d7-8abc-426af8730733"); //deleting not paid order for test purposes
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/pay", POST, request, String.class);
+
+        //then
+        assertEquals(METHOD_NOT_ALLOWED, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "All orders are already paid"
+                }""", response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void payForOrderThrowsExceptionWhenUserHasNotEnoughMoney() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "balance", "0.00"
+        ));
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/pay", POST, request, String.class);
+
+        //then
+        assertEquals(METHOD_NOT_ALLOWED, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Low balance"
+                }""", response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void payForOrderThrowsExceptionWhenOrderIsEmpty() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "balance", "500.00"
+        ));
+
+        //deleting products for testing purposes
+        jdbcTemplate.execute("DELETE FROM order_product WHERE order_number = '9e4dca52-c91a-43d7-8abc-426af8730733'");
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/pay", POST, request, String.class);
+
+        //then
+        assertEquals(METHOD_NOT_ALLOWED, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "Order is empty"
+                }""", response.getBody(), false);
+    }
+
+    @Test
+    @Sql(scripts = "db/OrderControllerITestData.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void payForOrderThrowsExceptionWhenProductAmountInOrderLargerThanInDB() throws JSONException {
+        //given
+        HttpEntity<Map<String, Object>> request = testRequestBuilderMap.get(USER).createRequestWithRequestBody(Map.of(
+                "balance", "500.00"
+        ));
+
+        //changing product amount for testing purposes
+        jdbcTemplate.execute("UPDATE product SET amount = 1 WHERE product_id = 2");
+
+        //when
+        ResponseEntity<String> response = testRestTemplate.exchange("/orders/pay", POST, request, String.class);
+
+        //then
+        assertEquals(METHOD_NOT_ALLOWED, response.getStatusCode());
+        JSONAssert.assertEquals("""
+                {
+                    "message": "You cannot buy more than 1 Name 2"
+                }""", response.getBody(), false);
     }
 }

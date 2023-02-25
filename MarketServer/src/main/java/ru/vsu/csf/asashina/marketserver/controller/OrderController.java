@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.vsu.csf.asashina.marketserver.model.ResponseBuilder;
 import ru.vsu.csf.asashina.marketserver.model.dto.*;
 import ru.vsu.csf.asashina.marketserver.model.request.AddProductToOrderRequest;
+import ru.vsu.csf.asashina.marketserver.model.request.PaymentRequest;
 import ru.vsu.csf.asashina.marketserver.service.OrderService;
 import ru.vsu.csf.asashina.marketserver.service.PurchaseService;
 import ru.vsu.csf.asashina.marketserver.service.UserService;
@@ -33,6 +34,9 @@ public class OrderController {
     @Operation(summary = "Fetches all user's orders in pages", tags = ORDER, responses = {
             @ApiResponse(responseCode = "200", description = "Returns orders in pages", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = OrdersInPagesDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "Anonymous user", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
             }),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
@@ -88,8 +92,29 @@ public class OrderController {
             })
     })
     public ResponseEntity<?> manageOrder(@RequestBody @Valid AddProductToOrderRequest request,
-                                               Authentication authentication) {
+                                         Authentication authentication) {
         UserDTO user = userService.getUserByEmail((String) authentication.getPrincipal());
         return ResponseBuilder.build(OK, purchaseService.manageProductInOrder(user, request));
+    }
+
+    @PostMapping("/pay")
+    @Operation(summary = "Sets order paid", tags = ORDER, responses = {
+            @ApiResponse(responseCode = "200", description = "Returns order's number", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = OrderWithUserDTO.class))
+            }),
+            @ApiResponse(responseCode = "400", description = "Invalid input data", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "403", description = "Anonymous user", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            }),
+            @ApiResponse(responseCode = "405", description = "Something went wrong while payment process", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDTO.class))
+            })
+    })
+    public ResponseEntity<?> payForOrder(@RequestBody @Valid PaymentRequest request,
+                                         Authentication authentication) {
+        UserDTO user = userService.getUserByEmail((String) authentication.getPrincipal());
+        return ResponseBuilder.build(OK, purchaseService.payForOrder(user, request));
     }
 }

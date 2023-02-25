@@ -63,7 +63,8 @@ public class ExceptionHandlerController {
         return ResponseBuilder.build(NOT_FOUND, e);
     }
 
-    @ExceptionHandler({OutOfStockException.class})
+    @ExceptionHandler({OutOfStockException.class, AllOrdersAreAlreadyPaidException.class, LowBalanceException.class,
+            OrderEmptyException.class})
     public ResponseEntity<?> methodNotAllowedException(Exception e) {
         return ResponseBuilder.build(METHOD_NOT_ALLOWED, e);
     }

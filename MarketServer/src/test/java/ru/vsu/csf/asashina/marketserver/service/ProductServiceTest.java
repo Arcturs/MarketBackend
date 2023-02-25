@@ -10,12 +10,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import ru.vsu.csf.asashina.marketserver.exception.ObjectAlreadyExistsException;
-import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
-import ru.vsu.csf.asashina.marketserver.exception.OutOfStockException;
-import ru.vsu.csf.asashina.marketserver.exception.PageException;
+import ru.vsu.csf.asashina.marketserver.exception.*;
 import ru.vsu.csf.asashina.marketserver.mapper.ProductMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.CategoryDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.OrderProductDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.ProductDetailedDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Category;
@@ -532,6 +530,43 @@ class ProductServiceTest {
 
         //when, then
         assertThatThrownBy(() -> productService.getProductFromAddToOrderRequest(request))
+                .isInstanceOf(OutOfStockException.class);
+    }
+
+    @Test
+    void decreaseProductsAmountSuccess() {
+        //given
+        Set<OrderProductDTO> orderProducts = Set.of(
+                new OrderProductDTO(1, BigDecimal.valueOf(100.00), createValidProductDTO())
+        );
+
+        when(productRepository.findPessimisticLockAllByProductIdIn(List.of(1L))).thenReturn(List.of(createValidProduct()));
+
+        //when, then
+        assertDoesNotThrow(() -> productService.decreaseProductsAmount(orderProducts));
+    }
+
+    @Test
+    void decreaseProductsAmountThrowsExceptionWheOrderProductAreEmpty() {
+        //given
+        Set<OrderProductDTO> orderProducts = Collections.EMPTY_SET;
+
+        //when, then
+        assertThatThrownBy(() -> productService.decreaseProductsAmount(orderProducts))
+                .isInstanceOf(OrderEmptyException.class);
+    }
+
+    @Test
+    void decreaseProductsAmountThrowsExceptionWhenAmountLargerThanInDB() {
+        //given
+        Set<OrderProductDTO> orderProducts = Set.of(
+                new OrderProductDTO(100, BigDecimal.valueOf(100.00), createValidProductDTO())
+        );
+
+        when(productRepository.findPessimisticLockAllByProductIdIn(List.of(1L))).thenReturn(List.of(createValidProduct()));
+
+        //when, then
+        assertThatThrownBy(() -> productService.decreaseProductsAmount(orderProducts))
                 .isInstanceOf(OutOfStockException.class);
     }
 }

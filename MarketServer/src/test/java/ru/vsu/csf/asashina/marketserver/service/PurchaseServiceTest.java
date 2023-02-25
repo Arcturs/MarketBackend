@@ -5,14 +5,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.vsu.csf.asashina.marketserver.exception.LowBalanceException;
 import ru.vsu.csf.asashina.marketserver.model.dto.*;
 import ru.vsu.csf.asashina.marketserver.model.request.AddProductToOrderRequest;
+import ru.vsu.csf.asashina.marketserver.model.request.PaymentRequest;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -88,5 +91,39 @@ class PurchaseServiceTest {
 
         //then
         assertEquals(expectedOrderNumber, result);
+    }
+
+    @Test
+    void payForOrderSuccess() {
+        //given
+        UserDTO user = createValidUserDTO();
+        PaymentRequest request = new PaymentRequest(BigDecimal.valueOf(200.00));
+
+        OrderDTO orderFromService = createValidOrderDTO();
+        OrderNumberDTO expectedOrderNumber = new OrderNumberDTO("num1");
+
+        when(orderService.getUsersLastOrder(user)).thenReturn(orderFromService);
+        doNothing().when(productService).decreaseProductsAmount(orderFromService.getProducts());
+        doNothing().when(orderService).setOrderPaid(orderFromService.getOrderNumber());
+
+        //when
+        OrderNumberDTO result = purchaseService.payForOrder(user, request);
+
+        //then
+        assertEquals(expectedOrderNumber, result);
+    }
+
+    @Test
+    void payForOrderThrowsExceptionWhenLowBalance() {
+        //given
+        UserDTO user = createValidUserDTO();
+        PaymentRequest request = new PaymentRequest(BigDecimal.valueOf(100.00));
+
+        OrderDTO orderFromService = createValidOrderDTO();
+
+        when(orderService.getUsersLastOrder(user)).thenReturn(orderFromService);
+
+        //when, then
+        assertThatThrownBy(() -> purchaseService.payForOrder(user, request)).isInstanceOf(LowBalanceException.class);
     }
 }

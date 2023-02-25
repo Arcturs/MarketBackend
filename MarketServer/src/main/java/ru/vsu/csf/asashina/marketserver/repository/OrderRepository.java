@@ -58,4 +58,11 @@ public interface OrderRepository extends JpaRepository<Order, String> {
                   AND product_id = :productId""", nativeQuery = true)
     void deleteProductFromOrder(@Param("orderNumber") String orderNumber,
                                 @Param("productId") Long productId);
+
+    @Modifying
+    @Query(value = """
+                UPDATE order_info
+                SET is_paid = true
+                WHERE order_number = :orderNumber""", nativeQuery = true)
+    void setOrderPaid(@Param("orderNumber") String orderNumber);
 }

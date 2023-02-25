@@ -4,12 +4,15 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectAlreadyExistsException;
 import ru.vsu.csf.asashina.marketserver.exception.ObjectNotExistException;
+import ru.vsu.csf.asashina.marketserver.exception.OrderEmptyException;
 import ru.vsu.csf.asashina.marketserver.exception.OutOfStockException;
 import ru.vsu.csf.asashina.marketserver.mapper.ProductMapper;
 import ru.vsu.csf.asashina.marketserver.model.dto.CategoryDTO;
+import ru.vsu.csf.asashina.marketserver.model.dto.OrderProductDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.ProductDTO;
 import ru.vsu.csf.asashina.marketserver.model.dto.ProductDetailedDTO;
 import ru.vsu.csf.asashina.marketserver.model.entity.Product;
@@ -21,9 +24,9 @@ import ru.vsu.csf.asashina.marketserver.repository.ProductRepository;
 import ru.vsu.csf.asashina.marketserver.util.PageUtil;
 
 import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -144,5 +147,31 @@ public class ProductService {
         if (dbAmount < requestAmount) {
             throw new OutOfStockException(MessageFormat.format("You cannot buy more than {0} products", dbAmount));
         }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void decreaseProductsAmount(Set<OrderProductDTO> orderProducts) {
+        if (orderProducts == null || orderProducts.isEmpty()) {
+            throw new OrderEmptyException("Order is empty");
+        }
+        List<Long> ids = orderProducts.stream()
+                .map(el -> el.getProduct().getProductId())
+                .toList();
+        List<Product> products = productRepository.findPessimisticLockAllByProductIdIn(ids);
+        Map<Long, Product> idProductMap = products.stream()
+                .collect(Collectors.toMap(Product::getProductId, Function.identity()));
+
+        List<Product> updatedProducts = new ArrayList<>();
+        for (OrderProductDTO orderProduct : orderProducts) {
+            Product product = idProductMap.get(orderProduct.getProduct().getProductId());
+            if (product.getAmount() < orderProduct.getAmount()) {
+                throw new OutOfStockException(MessageFormat.format("You cannot buy more than {0} {1}",
+                        product.getAmount(), product.getName()));
+            }
+            product.setAmount(product.getAmount() - orderProduct.getAmount());
+            updatedProducts.add(product);
+        }
+
+        productRepository.saveAll(updatedProducts);
     }
 }
