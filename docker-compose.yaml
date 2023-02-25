@@ -10,6 +10,7 @@ services:
       - POSTGRES_USER=${MARKET_DATABASE_USERNAME}
       - POSTGRES_PASSWORD=${MARKET_DATABASE_PASSWORD}
       - POSTGRES_DB=${MARKET_DATABASE_NAME}
+    command: [ "postgres", "-c", "wal_level=logical" ]
     volumes:
       - ./marketdb_data:/var/lib/postgresql/data
 
