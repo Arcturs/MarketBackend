@@ -8,11 +8,11 @@
         <version>3.0.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>ru.vsu.csf.asashina.marketserver</groupId>
-    <artifactId>MarketServer</artifactId>
+    <groupId>marketservice</groupId>
+    <artifactId>MarketService</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>MarketServer</name>
-    <description>MarketServer</description>
+    <name>MarketService</name>
+    <description>MarketService</description>
     <properties>
         <java.version>17</java.version>
         <testcontainers.version>1.17.6</testcontainers.version>
@@ -179,17 +179,17 @@
                         <configuration>
                             <outputDirectory>target/jacoco-report</outputDirectory>
                             <excludes>
-                                <exclude>ru/vsu/csf/asashina/marketserver/MarketServerApplication.class</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/exception/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/listener/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/handler/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/model/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/repository/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/mapper/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/configuration/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/serializer/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/filter/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/service/TokenService.class</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/MarketServiceApplication.class</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/exception/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/listener/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/handler/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/model/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/repository/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/mapper/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/configuration/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/serializer/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/filter/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/service/TokenService.class</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -200,17 +200,17 @@
                         </goals>
                         <configuration>
                             <excludes>
-                                <exclude>ru/vsu/csf/asashina/marketserver/MarketServerApplication.class</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/exception/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/listener/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/handler/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/model/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/repository/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/mapper/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/configuration/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/serializer/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/filter/**</exclude>
-                                <exclude>ru/vsu/csf/asashina/marketserver/service/TokenService.class</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/MarketServiceApplication.class</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/exception/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/listener/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/handler/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/model/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/repository/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/mapper/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/configuration/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/serializer/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/filter/**</exclude>
+                                <exclude>ru/vsu/csf/asashina/marketservice/service/TokenService.class</exclude>
                             </excludes>
                             <rules>
                                 <rule>
