@@ -1,4 +1,4 @@
-name: Build Market Server
+name: Build Market Service
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
 
       - name: Maven package
         run: |
-          cd MarketServer
+          cd MarketService
           mvn clean package -B -DskipTests
 
   test:
@@ -40,5 +40,5 @@ jobs:
 
       - name: Test
         run: |
-          cd MarketServer
+          cd MarketService
           mvn clean verify
