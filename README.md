@@ -15,7 +15,7 @@
 - [Debezium](https://debezium.io/).
 
 ## Что реализовано:
-Реализована вся логика маркета, подключен debezium. Больше про сам сервис в [readme маркета](MarketServer/README.md).
+Реализована вся логика маркета, подключен debezium. Больше про сам сервис в [readme маркета](https://github.com/Arcturs/MarketBackend/blob/master/MarketService/README.md).
 
 ## Запуск приложения
 ### Необходимые технологии:
@@ -28,7 +28,7 @@ docker-compose up -d
 ```
 
 ### Запуск тестов
-Для запуска тестов необходимо перейти в папку MarketServer и следовать инструкции [readme](MarketServer/README.md).
+Для запуска тестов необходимо перейти в папку MarketServer и следовать инструкции [readme](https://github.com/Arcturs/MarketBackend/blob/master/MarketService/README.md).
 
 ## Документация
 Чтобы просмотреть все эндпоинты маркета, необходимо перейти по ссылке: http://localhost:8080/api/v2/swagger-ui/index.html.
